@@ -10,6 +10,7 @@ else
 	FLAGS=-v
 endif
 
+.PHONY: gocmd
 gocmd:
 	go build -o $(BINARY) $(FLAGS) ./cmd/...
 
