@@ -1,0 +1,24 @@
+# Maintainer: Thomas Büning <buening at online dot de>
+# Contributor:
+pkgname=gocmd
+pkgver=0.1.0
+pkgrel=1
+epoch=
+pkgdesc="twin panel file manager written in go with gtk3 interface"
+arch=('x86_64')
+url="https://github.com/tbuen/gocmd"
+license=('GPL')
+depends=('glibc')
+makedepends=('go')
+source=("$pkgname.tar.gz")
+md5sums=(SKIP)
+
+build() {
+	cd "$pkgname"
+	make RELEASE=$pkgver
+}
+
+package() {
+	cd "$pkgname"
+	make DESTDIR=$pkgdir install
+}
