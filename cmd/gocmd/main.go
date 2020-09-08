@@ -1,7 +1,13 @@
 package main
 
-import "github.com/tbuen/gocmd/internal/app"
+import (
+	"github.com/tbuen/gocmd/internal/app"
+	"log"
+	"os"
+)
 
 func main() {
-	app.Run()
+	res := app.Run()
+	log.Println("Application exits:", res)
+	os.Exit(res)
 }

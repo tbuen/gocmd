@@ -10,10 +10,17 @@ import (
 )
 
 const name = "gocmd"
-var version = "develop"
 
-func Run() {
+var version = "develop"
+var runIdle = true
+
+func Run() int {
 	fmt.Println(name, version)
+
+	_, err := glib.IdleAdd(onIdle)
+	if err != nil {
+		log.Fatal("Could not add idle function.", err)
+	}
 
 	application, err := gtk.ApplicationNew("com.github.tbuen.gocmd", glib.APPLICATION_FLAGS_NONE)
 	if err != nil {
@@ -24,18 +31,24 @@ func Run() {
 	application.Connect("activate", func() { onActivate(application) })
 	application.Connect("shutdown", func() { onShutdown(application) })
 
-	os.Exit(application.Run(os.Args))
+	return application.Run(os.Args)
 }
 
 func onStartup(application *gtk.Application) {
-	log.Print("startup")
+	log.Println("startup")
 }
 
 func onActivate(application *gtk.Application) {
-	log.Print("activate")
+	log.Println("activate")
 	gui.ShowWindow(application, name)
 }
 
 func onShutdown(application *gtk.Application) {
-	log.Print("shutdown")
+	log.Println("shutdown")
+	runIdle = false
+}
+
+func onIdle() bool {
+	//log.Println("idle")
+	return runIdle
 }
