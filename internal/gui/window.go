@@ -24,18 +24,23 @@ var (
 		KEY_RIGHT: func() { x++ },
 		KEY_DOWN:  func() { y++ },
 	}
+	application *gtk.Application
 )
 
 func ShowWindow(app *gtk.Application, title string) {
-	win, err := gtk.ApplicationWindowNew(app)
+	application = app
+
+	win, err := gtk.ApplicationWindowNew(application)
 	if err != nil {
 		log.Fatal("Could not create application window.", err)
 	}
+
 	da, err := gtk.DrawingAreaNew()
 	if err != nil {
 		log.Fatal("Could not create drawing area.", err)
 	}
 
+	win.Connect("delete-event", onDelete)
 	win.Connect("key-press-event", onKeyPress)
 	da.Connect("draw", onDraw)
 
@@ -45,19 +50,26 @@ func ShowWindow(app *gtk.Application, title string) {
 	win.ShowAll()
 }
 
-func onDraw(da *gtk.DrawingArea, cr *cairo.Context) bool {
-	cr.SetSourceRGB(0, 0, 0)
-	cr.Rectangle(x*unitSize, y*unitSize, unitSize, unitSize)
-	cr.Fill()
+func onDelete(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
+	log.Println("delete")
+	// return true to keep window open
 	return false
 }
 
-func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
+func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 	keyEvent := gdk.EventKeyNewFromEvent(ev)
 	log.Println("Key:", keyEvent.KeyVal())
-	if move, found := keyMap[keyEvent.KeyVal()]; found {
+	if keyEvent.KeyVal() == gdk.KEY_q {
+		// TODO: Ctrl-q, Alt-q etc. should not work...
+		win.Close()
+	} else if move, found := keyMap[keyEvent.KeyVal()]; found {
 		move()
 		win.QueueDraw()
 	}
-	return false
+}
+
+func onDraw(da *gtk.DrawingArea, cr *cairo.Context) {
+	cr.SetSourceRGB(0, 0, 0)
+	cr.Rectangle(x*unitSize, y*unitSize, unitSize, unitSize)
+	cr.Fill()
 }
