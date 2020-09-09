@@ -1,11 +1,15 @@
-package directory
+package fs
 
-import (
+/*import (
 	"fmt"
 	"os"
-)
+)*/
 
-func ReadDir(path string) {
+type dir struct {
+	Path string
+}
+
+/*func ReadDir(path string) {
 	fmt.Println(path)
 	if dir, err := os.Open(path); err == nil {
 		if names, err := dir.Readdirnames(0); err == nil {
@@ -17,4 +21,4 @@ func ReadDir(path string) {
 	} else {
 		fmt.Println("error opening", path)
 	}
-}
+}*/
