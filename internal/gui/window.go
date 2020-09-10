@@ -72,8 +72,8 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 func onDraw(da *gtk.DrawingArea, cr *cairo.Context) {
 	dirLeft := fs.Tab(fs.TAB_LEFT)
 	dirRight := fs.Tab(fs.TAB_RIGHT)
-	log.Println("path(left) =", dirLeft.Path)
-	log.Println("path(right) =", dirRight.Path)
+	log.Println("path(left) =", dirLeft.Path())
+	log.Println("path(right) =", dirRight.Path())
 	cr.SetSourceRGB(0, 0, 0)
 	cr.Rectangle(x*unitSize, y*unitSize, unitSize, unitSize)
 	cr.Fill()
