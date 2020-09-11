@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 const (
@@ -40,21 +41,30 @@ func (d *dir) reload() {
 			go reloadRoutine(d)
 		}
 		d.ch <- 5
+		//close(d.ch)
 	}
 }
 
 func reloadRoutine(d *dir) {
-	i := <-d.ch
-	log.Println("go routine for path", d.path, "received", i)
-	if dir, err := os.Open(d.path); err == nil {
-		if names, err := dir.Readdirnames(0); err == nil {
-			fmt.Println(names)
+	for i := <-d.ch; i != 0; i = <-d.ch {
+		log.Println("go routine for path", d.path, "received", i)
+		if dir, err := os.Open(d.path); err == nil {
+			if names, err := dir.Readdirnames(0); err == nil {
+				fmt.Println(names)
+			} else {
+				fmt.Println("error reading", d.path)
+			}
+			dir.Close()
 		} else {
-			fmt.Println("error reading", d.path)
+			fmt.Println("error opening", d.path)
 		}
-		dir.Close()
-	} else {
-		fmt.Println("error opening", d.path)
 	}
 	log.Println("go routine for path", d.path, "exiting...")
+}
+
+func Receive() {
+	wait := time.After(10 * time.Millisecond)
+	select {
+	case <-wait:
+	}
 }

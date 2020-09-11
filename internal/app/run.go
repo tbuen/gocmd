@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/tbuen/gocmd/internal/fs"
 	"github.com/tbuen/gocmd/internal/gui"
 	"log"
 	"os"
@@ -49,6 +50,6 @@ func onShutdown(application *gtk.Application) {
 }
 
 func onIdle() bool {
-	//log.Println("idle")
+	fs.Receive()
 	return runIdle
 }
