@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -14,6 +13,7 @@ const (
 
 type Directory interface {
 	Path() string
+	Files() []File
 	reload()
 }
 
@@ -21,7 +21,14 @@ type dir struct {
 	state int
 	path  string
 	ch    chan int
+	files []File
 }
+
+type msg struct {
+	d *dir
+}
+
+var ch = make(chan msg, 1)
 
 func newDirectory(path string) Directory {
 	return &dir{path: path}
@@ -29,6 +36,10 @@ func newDirectory(path string) Directory {
 
 func (d *dir) Path() string {
 	return d.path
+}
+
+func (d *dir) Files() []File {
+	return d.files
 }
 
 func (d *dir) reload() {
@@ -50,14 +61,19 @@ func reloadRoutine(d *dir) {
 		log.Println("go routine for path", d.path, "received", i)
 		if dir, err := os.Open(d.path); err == nil {
 			if names, err := dir.Readdirnames(0); err == nil {
-				fmt.Println(names)
+				log.Println(names)
+				for _, n := range names {
+					d.files = append(d.files, newFile(n))
+				}
 			} else {
-				fmt.Println("error reading", d.path)
+				log.Println("error reading", d.path)
 			}
 			dir.Close()
 		} else {
-			fmt.Println("error opening", d.path)
+			log.Println("error opening", d.path)
 		}
+		m := msg{d}
+		ch <- m
 	}
 	log.Println("go routine for path", d.path, "exiting...")
 }
@@ -65,6 +81,8 @@ func reloadRoutine(d *dir) {
 func Receive() {
 	wait := time.After(10 * time.Millisecond)
 	select {
+	case m := <-ch:
+		log.Println("received response for path", m.d.Path())
 	case <-wait:
 	}
 }
