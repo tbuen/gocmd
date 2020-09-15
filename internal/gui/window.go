@@ -9,8 +9,15 @@ import (
 	"log"
 )
 
+var window *gtk.ApplicationWindow
+
+func init() {
+	fs.RegisterRefresh(Refresh)
+}
+
 func ShowWindow(app *gtk.Application, title string) {
-	win, err := gtk.ApplicationWindowNew(app)
+	var err error
+	window, err = gtk.ApplicationWindowNew(app)
 	if err != nil {
 		log.Fatal("Could not create application window.", err)
 	}
@@ -20,14 +27,20 @@ func ShowWindow(app *gtk.Application, title string) {
 		log.Fatal("Could not create drawing area.", err)
 	}
 
-	win.Connect("delete-event", onDelete)
-	win.Connect("key-press-event", onKeyPress)
+	window.Connect("delete-event", onDelete)
+	window.Connect("key-press-event", onKeyPress)
 	da.Connect("draw", onDraw)
 
-	win.Add(da)
-	win.SetTitle(title)
-	win.SetDefaultSize(400, 400)
-	win.ShowAll()
+	window.Add(da)
+	window.SetTitle(title)
+	window.SetDefaultSize(1000, 600)
+	window.ShowAll()
+}
+
+func Refresh() {
+	if window != nil {
+		window.QueueDraw()
+	}
 }
 
 func onDelete(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
@@ -44,7 +57,7 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 		// TODO: Ctrl-q, Alt-q etc. should not work...
 		win.Close()
 	case gdk.KEY_r:
-		win.QueueDraw()
+		fs.GetDirectory(fs.TAB_ACTIVE).Reload()
 	}
 }
 
@@ -55,17 +68,17 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.SetAntialias(cairo.ANTIALIAS_NONE)
 	layout := pango.CairoCreateLayout(context)
 	//layout.SetFontDescription(pango.FontDescriptionFromString("DejaVu Sans Mono 10"));
-	layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro Semibold 10"))
+	layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro Semibold 8"))
 	//layout.SetFontDescription(pango.FontDescriptionFromString("Cantarell 10"));
 	context.SetLineWidth(1)
 
 	context.Save()
 	context.Translate(0, 0)
-	drawPanel(context, layout, float64(width/2), float64(height), fs.Tab(fs.TAB_LEFT))
+	drawPanel(context, layout, float64(width/2), float64(height), fs.GetDirectory(fs.TAB_LEFT))
 	context.Restore()
 
 	context.Save()
 	context.Translate(float64(width/2), 0)
-	drawPanel(context, layout, float64(width/2), float64(height), fs.Tab(fs.TAB_RIGHT))
+	drawPanel(context, layout, float64(width/2), float64(height), fs.GetDirectory(fs.TAB_RIGHT))
 	context.Restore()
 }

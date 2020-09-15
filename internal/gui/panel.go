@@ -36,7 +36,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	//} else {
 	//  context.setSourceRgb(0x70/255.0, 0x70/255.0, 0x70/255.0);
 	//}
-	ch := 20.0
+	ch := 15.0
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
 
@@ -45,11 +45,13 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	layout.SetText(dir.Path(), -1)
 	pango.CairoShowLayout(context, layout)
 
-	for i, file := range dir.Files() {
-		context.SetSourceRGB(0, 0, 0)
-		context.MoveTo(10, 10+(float64(i)+1)*ch)
-		layout.SetText(file.Name(), -1)
-		pango.CairoShowLayout(context, layout)
+	if dir.State() == fs.STATE_IDLE {
+		for i, file := range dir.Files() {
+			context.SetSourceRGB(0, 0, 0)
+			context.MoveTo(10, 10+(float64(i)+1)*ch)
+			layout.SetText(file.Name(), -1)
+			pango.CairoShowLayout(context, layout)
+		}
 	}
 	/*long sel = directory.selection;
 	  for (long i = 0; i <= lines && directory.offset + i < directory.files.length; ++i) {
