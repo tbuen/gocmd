@@ -56,8 +56,22 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 	case gdk.KEY_q:
 		// TODO: Ctrl-q, Alt-q etc. should not work...
 		win.Close()
+	case gdk.KEY_Tab:
+		fs.TogglePanel()
 	case gdk.KEY_r:
-		fs.GetDirectory(fs.TAB_ACTIVE).Reload()
+		fs.GetDirectory(fs.PANEL_ACTIVE).Reload()
+	case gdk.KEY_j:
+		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(1)
+	case gdk.KEY_J:
+		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(20)
+	case gdk.KEY_k:
+		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(-1)
+	case gdk.KEY_K:
+		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(-20)
+	case gdk.KEY_g:
+		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(0)
+	case gdk.KEY_G:
+		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(len(fs.GetDirectory(fs.PANEL_ACTIVE).Files()) - 1)
 	}
 }
 
@@ -74,11 +88,11 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 
 	context.Save()
 	context.Translate(0, 0)
-	drawPanel(context, layout, float64(width/2), float64(height), fs.GetDirectory(fs.TAB_LEFT))
+	drawPanel(context, layout, float64(width/2), float64(height), fs.ActivePanel() == fs.PANEL_LEFT, fs.GetDirectory(fs.PANEL_LEFT))
 	context.Restore()
 
 	context.Save()
 	context.Translate(float64(width/2), 0)
-	drawPanel(context, layout, float64(width/2), float64(height), fs.GetDirectory(fs.TAB_RIGHT))
+	drawPanel(context, layout, float64(width/2), float64(height), fs.ActivePanel() == fs.PANEL_RIGHT, fs.GetDirectory(fs.PANEL_RIGHT))
 	context.Restore()
 }

@@ -17,13 +17,19 @@ type Directory interface {
 	Path() string
 	Files() []File
 	Reload()
+	Selection() int
+	SetSelectionRelative(n int)
+	SetSelectionAbsolute(n int)
+	DispOffset() int
 }
 
 type dir struct {
-	state int
-	path  string
-	ch    chan int
-	files []File
+	state      int
+	path       string
+	ch         chan int
+	files      []File
+	selection  int
+	dispOffset int
 }
 
 type msg struct {
@@ -61,6 +67,34 @@ func (d *dir) Reload() {
 		guiRefresh()
 		//close(d.ch)
 	}
+}
+
+func (d *dir) Selection() int {
+	return d.selection
+}
+
+func (d *dir) SetSelectionRelative(n int) {
+	if n > 0 {
+		d.SetSelectionAbsolute(d.selection + n)
+	} else {
+		n = -n
+		if n > d.selection {
+			n = d.selection
+		}
+		d.SetSelectionAbsolute(d.selection - n)
+	}
+}
+
+func (d *dir) SetSelectionAbsolute(n int) {
+	d.selection = n
+	if d.selection >= len(d.files) {
+		d.selection = len(d.files) - 1
+	}
+	guiRefresh()
+}
+
+func (d *dir) DispOffset() int {
+	return d.dispOffset
 }
 
 func reloadRoutine(d *dir) {

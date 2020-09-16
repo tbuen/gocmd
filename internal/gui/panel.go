@@ -6,10 +6,11 @@ import (
 	"github.com/tbuen/gocmd/internal/fs"
 )
 
-func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, dir fs.Directory) {
+func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir fs.Directory) {
 
 	//    int cw, ch;
 	//lines := 10
+	ch := 15.0
 
 	context.SetSourceRGB(0, 0, 0)
 	context.Rectangle(5, 5, width-8, height-9)
@@ -30,13 +31,12 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	  }*/
 
 	//////context.setSourceRgb(0x00, 0x40/255.0, 0xb0/255.0);
-	//if (directory.focus) {
-	//context.setSourceRgb(0x4a/255.0, 0x90/255.0, 0xd9/255.0);
-	context.SetSourceRGB(0, 0x50/255.0, 0x70/255.0)
-	//} else {
-	//  context.setSourceRgb(0x70/255.0, 0x70/255.0, 0x70/255.0);
-	//}
-	ch := 15.0
+	if active {
+		//context.setSourceRgb(0x4a/255.0, 0x90/255.0, 0xd9/255.0);
+		context.SetSourceRGB(0, 0x50/255.0, 0x70/255.0)
+	} else {
+		context.SetSourceRGB(0x70/255.0, 0x70/255.0, 0x70/255.0)
+	}
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
 
@@ -47,6 +47,11 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 
 	if dir.State() == fs.STATE_IDLE {
 		for i, file := range dir.Files() {
+			if i == dir.Selection() {
+				context.SetSourceRGB(0, 0, 0)
+				context.Rectangle(8, 11+(float64(i)+1)*ch, width-14, ch)
+				context.Stroke()
+			}
 			context.SetSourceRGB(0, 0, 0)
 			context.MoveTo(10, 10+(float64(i)+1)*ch)
 			layout.SetText(file.Name(), -1)
