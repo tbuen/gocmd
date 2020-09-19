@@ -54,7 +54,11 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			}
 			context.SetSourceRGB(0, 0, 0)
 			context.MoveTo(10, 10+(float64(i)+1)*ch)
-			layout.SetText(file.Name(), -1)
+			if file.IsDir() {
+				layout.SetText("[" + file.Name() + "]", -1)
+			} else {
+				layout.SetText(file.Name(), -1)
+			}
 			pango.CairoShowLayout(context, layout)
 		}
 	}

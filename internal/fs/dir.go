@@ -101,13 +101,15 @@ func reloadRoutine(d *dir) {
 	for i := <-d.ch; i != 0; i = <-d.ch {
 		log.Println("go routine for path", d.path, "received", i)
 		if dir, err := os.Open(d.path); err == nil {
-			if names, err := dir.Readdirnames(0); err == nil {
-				log.Println(names)
+			if fileinfo, err := dir.Readdir(0); err == nil {
 				d.files = d.files[0:0]
 				log.Println("vorher: len:", len(d.files), "cap:", cap(d.files))
-				for _, n := range names {
+				for _, fi := range fileinfo {
+					log.Println("Datei: ", fi.Name())
 					time.Sleep(100 * time.Millisecond)
-					d.files = append(d.files, newFile(n))
+					if fi.Name()[0] != '.' {
+						d.files = append(d.files, newFile(fi))
+					}
 				}
 				log.Println("nachher: len:", len(d.files), "cap:", cap(d.files))
 			} else {
