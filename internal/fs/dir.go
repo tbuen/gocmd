@@ -111,6 +111,7 @@ func reloadRoutine(d *dir) {
 						d.files = append(d.files, newFile(fi))
 					}
 				}
+				orderedBy(dirFirst, name).sort(d.files)
 				log.Println("nachher: len:", len(d.files), "cap:", cap(d.files))
 			} else {
 				log.Println("error reading", d.path)
