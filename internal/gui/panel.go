@@ -47,6 +47,11 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 
 	if dir.State() == fs.STATE_IDLE {
 		for i, file := range dir.Files() {
+			if file.IsMarked() {
+				context.SetSourceRGB(0xFF/255.0, 0xA0/255.0, 0x90/255.0)
+				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
+				context.Fill()
+			}
 			if i == dir.Selection() {
 				context.SetSourceRGB(0, 0, 0)
 				context.Rectangle(8, 11+(float64(i)+1)*ch, width-14, ch)
@@ -55,7 +60,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			context.SetSourceRGB(0, 0, 0)
 			context.MoveTo(10, 10+(float64(i)+1)*ch)
 			if file.IsDir() {
-				layout.SetText("[" + file.Name() + "]", -1)
+				layout.SetText("["+file.Name()+"]", -1)
 			} else {
 				layout.SetText(file.Name(), -1)
 			}
