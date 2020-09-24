@@ -60,24 +60,28 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 		fs.TogglePanel()
 	case gdk.KEY_r:
 		fs.GetDirectory(fs.PANEL_ACTIVE).Reload()
-	case gdk.KEY_j:
+	case gdk.KEY_j, gdk.KEY_Down:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(1)
-	case gdk.KEY_J:
+	case gdk.KEY_J, gdk.KEY_Page_Down:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(20)
-	case gdk.KEY_k:
+	case gdk.KEY_k, gdk.KEY_Up:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(-1)
-	case gdk.KEY_K:
+	case gdk.KEY_K, gdk.KEY_Page_Up:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(-20)
-	case gdk.KEY_g:
+	case gdk.KEY_g, gdk.KEY_Home:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(0)
-	case gdk.KEY_G:
+	case gdk.KEY_G, gdk.KEY_End:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(len(fs.GetDirectory(fs.PANEL_ACTIVE).Files()) - 1)
-	case gdk.KEY_n:
+	case gdk.KEY_m:
 		fs.GetDirectory(fs.PANEL_ACTIVE).Files()[fs.GetDirectory(fs.PANEL_ACTIVE).Selection()].ToggleMark()
-	case gdk.KEY_N:
+	case gdk.KEY_M:
 		for _, f := range fs.GetDirectory(fs.PANEL_ACTIVE).Files() {
 			f.ToggleMark()
 		}
+	case gdk.KEY_u, gdk.KEY_numbersign:
+		fs.GetDirectory(fs.PANEL_ACTIVE).GoUp()
+	case gdk.KEY_Return:
+		fs.GetDirectory(fs.PANEL_ACTIVE).Enter()
 	}
 }
 

@@ -3,6 +3,7 @@ package fs
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -21,6 +22,8 @@ type Directory interface {
 	SetSelectionRelative(n int)
 	SetSelectionAbsolute(n int)
 	DispOffset() int
+	GoUp()
+	Enter()
 }
 
 type dir struct {
@@ -30,6 +33,7 @@ type dir struct {
 	files      []File
 	selection  int
 	dispOffset int
+	selectDir  string
 }
 
 type msg struct {
@@ -69,28 +73,64 @@ func (d *dir) Reload() {
 	}
 }
 
+func (d *dir) GoUp() {
+	if d.state == STATE_IDLE {
+		if d.path != string(filepath.Separator) {
+			d.selectDir = filepath.Base(d.path)
+			d.path = filepath.Dir(d.path)
+			d.dispOffset = 0
+			d.selection = 0
+			d.Reload()
+		}
+	}
+}
+
+func (d *dir) Enter() {
+	if d.state == STATE_IDLE {
+		if d.selection < len(d.files) {
+			if d.files[d.selection].IsDir() {
+				//_offsetHist[_path] = _offset;
+				if d.path == string(filepath.Separator) {
+					d.path += d.files[d.selection].Name()
+				} else {
+					d.path += string(filepath.Separator) + d.files[d.selection].Name()
+				}
+				d.dispOffset = 0
+				d.selection = 0
+				d.Reload()
+			} else {
+				// TODO
+			}
+		}
+	}
+}
+
 func (d *dir) Selection() int {
 	return d.selection
 }
 
 func (d *dir) SetSelectionRelative(n int) {
-	if n > 0 {
-		d.SetSelectionAbsolute(d.selection + n)
-	} else {
-		n = -n
-		if n > d.selection {
-			n = d.selection
+	if d.state == STATE_IDLE {
+		if n > 0 {
+			d.SetSelectionAbsolute(d.selection + n)
+		} else {
+			n = -n
+			if n > d.selection {
+				n = d.selection
+			}
+			d.SetSelectionAbsolute(d.selection - n)
 		}
-		d.SetSelectionAbsolute(d.selection - n)
 	}
 }
 
 func (d *dir) SetSelectionAbsolute(n int) {
-	d.selection = n
-	if d.selection >= len(d.files) {
-		d.selection = len(d.files) - 1
+	if d.state == STATE_IDLE {
+		d.selection = n
+		if d.selection >= len(d.files) {
+			d.selection = len(d.files) - 1
+		}
+		guiRefresh()
 	}
-	guiRefresh()
 }
 
 func (d *dir) DispOffset() int {
@@ -112,6 +152,13 @@ func reloadRoutine(d *dir) {
 					}
 				}
 				orderedBy(dirFirst, name).sort(d.files)
+				for i, f := range d.files {
+					if f.Name() == d.selectDir {
+						d.selection = i
+						d.selectDir = ""
+						break
+					}
+				}
 				log.Println("nachher: len:", len(d.files), "cap:", cap(d.files))
 			} else {
 				log.Println("error reading", d.path)

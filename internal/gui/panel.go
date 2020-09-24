@@ -40,7 +40,11 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
 
-	context.SetSourceRGB(1, 1, 1)
+	if dir.State() == fs.STATE_IDLE {
+		context.SetSourceRGB(1, 1, 1)
+	} else {
+		context.SetSourceRGB(1, 1, 0)
+	}
 	context.MoveTo(10, 8)
 	layout.SetText(dir.Path(), -1)
 	pango.CairoShowLayout(context, layout)
