@@ -13,6 +13,10 @@ const (
 	STATE_ERROR  = 2
 )
 
+const (
+	CMD_RELOAD = 1
+)
+
 type Directory interface {
 	State() int
 	Path() string
@@ -37,7 +41,8 @@ type dir struct {
 }
 
 type msg struct {
-	d *dir
+	success bool
+	d       *dir
 }
 
 var ch = make(chan msg, 1)
@@ -60,21 +65,21 @@ func (d *dir) Files() []File {
 
 func (d *dir) Reload() {
 	log.Println("Reload:", d.path)
-	if d.state == STATE_IDLE {
+	if d.state != STATE_RELOAD {
 		d.state = STATE_RELOAD
 		if d.ch == nil {
 			log.Println("create go routine...")
 			d.ch = make(chan int, 1)
 			go reloadRoutine(d)
 		}
-		d.ch <- 5
+		d.ch <- CMD_RELOAD
 		guiRefresh()
 		//close(d.ch)
 	}
 }
 
 func (d *dir) GoUp() {
-	if d.state == STATE_IDLE {
+	if d.state != STATE_RELOAD {
 		if d.path != string(filepath.Separator) {
 			d.selectDir = filepath.Base(d.path)
 			d.path = filepath.Dir(d.path)
@@ -140,35 +145,40 @@ func (d *dir) DispOffset() int {
 func reloadRoutine(d *dir) {
 	for i := <-d.ch; i != 0; i = <-d.ch {
 		log.Println("go routine for path", d.path, "received", i)
-		if dir, err := os.Open(d.path); err == nil {
-			if fileinfo, err := dir.Readdir(0); err == nil {
-				d.files = d.files[0:0]
-				log.Println("vorher: len:", len(d.files), "cap:", cap(d.files))
-				for _, fi := range fileinfo {
-					log.Println("Datei: ", fi.Name())
-					time.Sleep(100 * time.Millisecond)
-					if fi.Name()[0] != '.' {
-						d.files = append(d.files, newFile(fi))
+		if i == CMD_RELOAD {
+			success := false
+			if dir, err := os.Open(d.path); err == nil {
+				if fileinfo, err := dir.Readdir(0); err == nil {
+					d.files = d.files[0:0]
+					log.Println("vorher: len:", len(d.files), "cap:", cap(d.files))
+					for _, fi := range fileinfo {
+						log.Println("Datei: ", fi.Name())
+						time.Sleep(100 * time.Millisecond)
+						if fi.Name()[0] != '.' {
+							d.files = append(d.files, newFile(fi))
+						}
 					}
-				}
-				orderedBy(dirFirst, name).sort(d.files)
-				for i, f := range d.files {
-					if f.Name() == d.selectDir {
-						d.selection = i
-						d.selectDir = ""
-						break
+					orderedBy(dirFirst, name).sort(d.files)
+					for i, f := range d.files {
+						if f.Name() == d.selectDir {
+							d.selection = i
+							d.selectDir = ""
+							break
+						}
 					}
+					log.Println("nachher: len:", len(d.files), "cap:", cap(d.files))
+					success = true
+				} else {
+					log.Println("error reading", d.path)
 				}
-				log.Println("nachher: len:", len(d.files), "cap:", cap(d.files))
+				dir.Close()
 			} else {
-				log.Println("error reading", d.path)
+				log.Println("error opening", d.path)
+
 			}
-			dir.Close()
-		} else {
-			log.Println("error opening", d.path)
+			m := msg{success, d}
+			ch <- m
 		}
-		m := msg{d}
-		ch <- m
 	}
 	log.Println("go routine for path", d.path, "exiting...")
 }
@@ -178,7 +188,11 @@ func Receive() {
 	select {
 	case m := <-ch:
 		log.Println("received response for path", m.d.Path())
-		m.d.state = STATE_IDLE
+		if m.success {
+			m.d.state = STATE_IDLE
+		} else {
+			m.d.state = STATE_ERROR
+		}
 		guiRefresh()
 	case <-wait:
 	}

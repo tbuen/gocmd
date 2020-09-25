@@ -40,9 +40,12 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
 
-	if dir.State() == fs.STATE_IDLE {
+	switch dir.State() {
+	case fs.STATE_IDLE:
 		context.SetSourceRGB(1, 1, 1)
-	} else {
+	case fs.STATE_ERROR:
+		context.SetSourceRGB(1, 0, 0)
+	case fs.STATE_RELOAD:
 		context.SetSourceRGB(1, 1, 0)
 	}
 	context.MoveTo(10, 8)
