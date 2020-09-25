@@ -1,7 +1,7 @@
 package fs
 
 import (
-	"log"
+	"github.com/tbuen/gocmd/internal/log"
 	"os"
 	"path/filepath"
 	"time"
@@ -64,11 +64,11 @@ func (d *dir) Files() []File {
 }
 
 func (d *dir) Reload() {
-	log.Println("Reload:", d.path)
+	log.Println(log.MOD_DIR, "Reload:", d.path)
 	if d.state != STATE_RELOAD {
 		d.state = STATE_RELOAD
 		if d.ch == nil {
-			log.Println("create go routine...")
+			log.Println(log.MOD_DIR, "create go routine...")
 			d.ch = make(chan int, 1)
 			go reloadRoutine(d)
 		}
@@ -144,15 +144,15 @@ func (d *dir) DispOffset() int {
 
 func reloadRoutine(d *dir) {
 	for i := <-d.ch; i != 0; i = <-d.ch {
-		log.Println("go routine for path", d.path, "received", i)
+		log.Println(log.MOD_DIR, "go routine for path", d.path, "received", i)
 		if i == CMD_RELOAD {
 			success := false
 			if dir, err := os.Open(d.path); err == nil {
 				if fileinfo, err := dir.Readdir(0); err == nil {
 					d.files = d.files[0:0]
-					log.Println("vorher: len:", len(d.files), "cap:", cap(d.files))
+					log.Println(log.MOD_DIR, "vorher: len:", len(d.files), "cap:", cap(d.files))
 					for _, fi := range fileinfo {
-						log.Println("Datei: ", fi.Name())
+						log.Println(log.MOD_DIR, "Datei: ", fi.Name())
 						time.Sleep(100 * time.Millisecond)
 						if fi.Name()[0] != '.' {
 							d.files = append(d.files, newFile(fi))
@@ -166,28 +166,28 @@ func reloadRoutine(d *dir) {
 							break
 						}
 					}
-					log.Println("nachher: len:", len(d.files), "cap:", cap(d.files))
+					log.Println(log.MOD_DIR, "nachher: len:", len(d.files), "cap:", cap(d.files))
 					success = true
 				} else {
-					log.Println("error reading", d.path)
+					log.Println(log.MOD_DIR, "error reading", d.path)
 				}
 				dir.Close()
 			} else {
-				log.Println("error opening", d.path)
+				log.Println(log.MOD_DIR, "error opening", d.path)
 
 			}
 			m := msg{success, d}
 			ch <- m
 		}
 	}
-	log.Println("go routine for path", d.path, "exiting...")
+	log.Println(log.MOD_DIR, "go routine for path", d.path, "exiting...")
 }
 
 func Receive() {
 	wait := time.After(10 * time.Millisecond)
 	select {
 	case m := <-ch:
-		log.Println("received response for path", m.d.Path())
+		log.Println(log.MOD_DIR, "received response for path", m.d.Path())
 		if m.success {
 			m.d.state = STATE_IDLE
 		} else {

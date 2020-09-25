@@ -6,7 +6,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/fs"
-	"log"
+	"github.com/tbuen/gocmd/internal/log"
 )
 
 var window *gtk.ApplicationWindow
@@ -44,14 +44,14 @@ func Refresh() {
 }
 
 func onDelete(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
-	log.Println("delete")
+	log.Println(log.MOD_MAIN, "delete")
 	// return true to keep window open
 	return false
 }
 
 func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 	keyEvent := gdk.EventKeyNewFromEvent(ev)
-	log.Println("Key:", keyEvent.KeyVal())
+	log.Println(log.MOD_MAIN, "Key:", keyEvent.KeyVal())
 	switch keyEvent.KeyVal() {
 	case gdk.KEY_q:
 		// TODO: Ctrl-q, Alt-q etc. should not work...

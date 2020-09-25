@@ -1,12 +1,11 @@
 package app
 
 import (
-	"fmt"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/tbuen/gocmd/internal/fs"
 	"github.com/tbuen/gocmd/internal/gui"
-	"log"
+	"github.com/tbuen/gocmd/internal/log"
 	"os"
 )
 
@@ -16,16 +15,16 @@ var version = "develop"
 var runIdle = true
 
 func Run() int {
-	fmt.Println(name, version)
+	log.Println(log.MOD_MAIN, name, version)
 
 	_, err := glib.IdleAdd(onIdle)
 	if err != nil {
-		log.Fatal("Could not add idle function.", err)
+		log.Fatal("could not add idle function:", err)
 	}
 
 	application, err := gtk.ApplicationNew("com.github.tbuen.gocmd", glib.APPLICATION_FLAGS_NONE)
 	if err != nil {
-		log.Fatal("Could not create application.", err)
+		log.Fatal("could not create application:", err)
 	}
 
 	application.Connect("startup", func() { onStartup(application) })
@@ -36,16 +35,16 @@ func Run() int {
 }
 
 func onStartup(application *gtk.Application) {
-	log.Println("startup")
+	log.Println(log.MOD_MAIN, "startup")
 }
 
 func onActivate(application *gtk.Application) {
-	log.Println("activate")
+	log.Println(log.MOD_MAIN, "activate")
 	gui.ShowWindow(application, name)
 }
 
 func onShutdown(application *gtk.Application) {
-	log.Println("shutdown")
+	log.Println(log.MOD_MAIN, "shutdown")
 	runIdle = false
 }
 
