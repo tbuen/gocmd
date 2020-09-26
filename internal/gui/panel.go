@@ -4,13 +4,17 @@ import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/fs"
+	"github.com/tbuen/gocmd/internal/log"
 )
 
 func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir fs.Directory) {
 
 	//    int cw, ch;
-	//lines := 10
 	ch := 15.0
+
+	state := dir.State()
+	selection := dir.Selection()
+	offset := dir.DispOffset()
 
 	context.SetSourceRGB(0, 0, 0)
 	context.Rectangle(5, 5, width-8, height-9)
@@ -20,15 +24,16 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 
 	//layout.SetText(".");
 	//layout.GetPixelSize(cw, ch);
-	//lines = (height - 19 - ch) / ch;
-	//debug writeln("lines ", lines);
+	lines := int((height - 19 - ch) / ch)
+	log.Println(log.MOD_GUI, "lines:", lines)
 
-	/*if (directory.selection >= directory.offset + lines) {
-	     directory.offset = directory.selection - lines + 1;
-	  }
-	  if (directory.selection < directory.offset) {
-	     directory.offset = directory.selection;
-	  }*/
+	if selection >= offset+lines {
+		offset = selection - lines + 1
+	}
+	if selection < offset {
+		offset = selection
+	}
+	dir.SetDispOffset(offset)
 
 	//////context.setSourceRgb(0x00, 0x40/255.0, 0xb0/255.0);
 	if active {
@@ -40,7 +45,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
 
-	switch dir.State() {
+	switch state {
 	case fs.STATE_IDLE:
 		context.SetSourceRGB(1, 1, 1)
 	case fs.STATE_ERROR:
@@ -52,14 +57,16 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	layout.SetText(dir.Path(), -1)
 	pango.CairoShowLayout(context, layout)
 
-	if dir.State() == fs.STATE_IDLE {
-		for i, file := range dir.Files() {
+	if state == fs.STATE_IDLE {
+		files := dir.Files()
+		for i := 0; i <= lines && offset+i < len(files); i++ {
+			file := files[offset+i]
 			if file.IsMarked() {
 				context.SetSourceRGB(0xFF/255.0, 0xA0/255.0, 0x90/255.0)
 				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
 				context.Fill()
 			}
-			if i == dir.Selection() {
+			if active && offset+i == selection {
 				context.SetSourceRGB(0, 0, 0)
 				context.Rectangle(8, 11+(float64(i)+1)*ch, width-14, ch)
 				context.Stroke()

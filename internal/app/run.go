@@ -40,7 +40,7 @@ func onStartup(application *gtk.Application) {
 
 func onActivate(application *gtk.Application) {
 	log.Println(log.MOD_MAIN, "activate")
-	gui.ShowWindow(application, name)
+	gui.ShowWindow(application, name+" "+version)
 }
 
 func onShutdown(application *gtk.Application) {

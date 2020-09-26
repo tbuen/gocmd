@@ -3,5 +3,5 @@
 package log
 
 const (
-	config = MOD_MAIN | MOD_DIR
+	config = MOD_MAIN | MOD_GUI // | MOD_DIR
 )

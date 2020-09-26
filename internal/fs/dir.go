@@ -26,18 +26,20 @@ type Directory interface {
 	SetSelectionRelative(n int)
 	SetSelectionAbsolute(n int)
 	DispOffset() int
+	SetDispOffset(offset int)
 	GoUp()
 	Enter()
 }
 
 type dir struct {
-	state      int
-	path       string
-	ch         chan int
-	files      []File
-	selection  int
-	dispOffset int
-	selectDir  string
+	state          int
+	path           string
+	ch             chan int
+	files          []File
+	selection      int
+	dispOffset     int
+	dispOffsetHist map[string]int
+	selectDir      string
 }
 
 type msg struct {
@@ -48,7 +50,11 @@ type msg struct {
 var ch = make(chan msg, 1)
 
 func newDirectory(path string) Directory {
-	return &dir{path: path}
+	d := dir{}
+	d.state = STATE_ERROR
+	d.path = path
+	d.dispOffsetHist = make(map[string]int)
+	return &d
 }
 
 func (d *dir) State() int {
@@ -94,7 +100,7 @@ func (d *dir) Enter() {
 	if d.state == STATE_IDLE {
 		if d.selection < len(d.files) {
 			if d.files[d.selection].IsDir() {
-				//_offsetHist[_path] = _offset;
+				d.dispOffsetHist[d.path] = d.dispOffset
 				if d.path == string(filepath.Separator) {
 					d.path += d.files[d.selection].Name()
 				} else {
@@ -142,6 +148,10 @@ func (d *dir) DispOffset() int {
 	return d.dispOffset
 }
 
+func (d *dir) SetDispOffset(offset int) {
+	d.dispOffset = offset
+}
+
 func reloadRoutine(d *dir) {
 	for i := <-d.ch; i != 0; i = <-d.ch {
 		log.Println(log.MOD_DIR, "go routine for path", d.path, "received", i)
@@ -153,7 +163,7 @@ func reloadRoutine(d *dir) {
 					log.Println(log.MOD_DIR, "vorher: len:", len(d.files), "cap:", cap(d.files))
 					for _, fi := range fileinfo {
 						log.Println(log.MOD_DIR, "Datei: ", fi.Name())
-						time.Sleep(100 * time.Millisecond)
+						//time.Sleep(100 * time.Millisecond)
 						if fi.Name()[0] != '.' {
 							d.files = append(d.files, newFile(fi))
 						}
@@ -167,7 +177,12 @@ func reloadRoutine(d *dir) {
 						}
 					}
 					log.Println(log.MOD_DIR, "nachher: len:", len(d.files), "cap:", cap(d.files))
+					if offset, ok := d.dispOffsetHist[d.path]; ok {
+						d.dispOffset = offset
+						delete(d.dispOffsetHist, d.path)
+					}
 					success = true
+
 				} else {
 					log.Println(log.MOD_DIR, "error reading", d.path)
 				}
