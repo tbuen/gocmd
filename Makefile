@@ -21,6 +21,7 @@ fmt:
 .PHONY: clean
 clean:
 	rm -f $(BINARY)
+	rm -rf build/package/gocmd build/package/pkg build/package/src
 
 .PHONY: install
 install:
