@@ -27,8 +27,12 @@ type Directory interface {
 	SetSelectionAbsolute(n int)
 	DispOffset() int
 	SetDispOffset(offset int)
+	ToggleMarkSelected()
+	ToggleMarkAll()
 	GoUp()
 	Enter()
+	Root()
+	Home()
 }
 
 type dir struct {
@@ -52,8 +56,17 @@ var ch = make(chan msg, 1)
 func newDirectory(path string) Directory {
 	d := dir{}
 	d.state = STATE_ERROR
-	d.path = path
 	d.dispOffsetHist = make(map[string]int)
+	if path == "" {
+		home, err := os.UserHomeDir()
+		if err == nil {
+			d.path = home
+		} else {
+			d.path = string(filepath.Separator)
+		}
+	} else {
+		d.path = path
+	}
 	return &d
 }
 
@@ -116,6 +129,31 @@ func (d *dir) Enter() {
 	}
 }
 
+func (d *dir) Root() {
+	if d.state != STATE_RELOAD {
+		if d.path != string(filepath.Separator) {
+			d.path = string(filepath.Separator)
+			d.dispOffset = 0
+			d.selection = 0
+			d.Reload()
+		}
+	}
+}
+
+func (d *dir) Home() {
+	if d.state != STATE_RELOAD {
+		home, err := os.UserHomeDir()
+		if err == nil {
+			if d.path != home {
+				d.path = home
+				d.dispOffset = 0
+				d.selection = 0
+				d.Reload()
+			}
+		}
+	}
+}
+
 func (d *dir) Selection() int {
 	return d.selection
 }
@@ -150,6 +188,18 @@ func (d *dir) DispOffset() int {
 
 func (d *dir) SetDispOffset(offset int) {
 	d.dispOffset = offset
+}
+
+func (d *dir) ToggleMarkSelected() {
+	d.files[d.selection].toggleMark()
+	guiRefresh()
+}
+
+func (d *dir) ToggleMarkAll() {
+	for _, f := range d.files {
+		f.toggleMark()
+	}
+	guiRefresh()
 }
 
 func reloadRoutine(d *dir) {

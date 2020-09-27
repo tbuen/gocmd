@@ -73,15 +73,17 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 	case gdk.KEY_G, gdk.KEY_End:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(len(fs.GetDirectory(fs.PANEL_ACTIVE).Files()) - 1)
 	case gdk.KEY_m:
-		fs.GetDirectory(fs.PANEL_ACTIVE).Files()[fs.GetDirectory(fs.PANEL_ACTIVE).Selection()].ToggleMark()
+		fs.GetDirectory(fs.PANEL_ACTIVE).ToggleMarkSelected()
 	case gdk.KEY_M:
-		for _, f := range fs.GetDirectory(fs.PANEL_ACTIVE).Files() {
-			f.ToggleMark()
-		}
+		fs.GetDirectory(fs.PANEL_ACTIVE).ToggleMarkAll()
 	case gdk.KEY_u, gdk.KEY_numbersign:
 		fs.GetDirectory(fs.PANEL_ACTIVE).GoUp()
 	case gdk.KEY_Return:
 		fs.GetDirectory(fs.PANEL_ACTIVE).Enter()
+	case gdk.KEY_asciicircum:
+		fs.GetDirectory(fs.PANEL_ACTIVE).Root()
+	case gdk.KEY_asciitilde:
+		fs.GetDirectory(fs.PANEL_ACTIVE).Home()
 	}
 }
 

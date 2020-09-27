@@ -8,7 +8,7 @@ type File interface {
 	Name() string
 	IsDir() bool
 	IsMarked() bool
-	ToggleMark()
+	toggleMark()
 }
 
 type file struct {
@@ -41,7 +41,6 @@ func (f *file) IsMarked() bool {
 	return f.marked
 }
 
-func (f *file) ToggleMark() {
+func (f *file) toggleMark() {
 	f.marked = !f.marked
-	guiRefresh()
 }

@@ -12,8 +12,8 @@ var (
 )
 
 func init() {
-	left := newDirectory("/home/thomas")
-	right := newDirectory("/home/thomas/github/gocmd")
+	left := newDirectory("")
+	right := newDirectory("")
 	tabs[PANEL_LEFT] = append(tabs[PANEL_LEFT], left)
 	tabs[PANEL_RIGHT] = append(tabs[PANEL_RIGHT], right)
 	tabs[PANEL_LEFT][0].Reload()
