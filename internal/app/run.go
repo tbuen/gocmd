@@ -17,11 +17,6 @@ var runIdle = true
 func Run() int {
 	log.Println(log.MOD_MAIN, name, version)
 
-	_, err := glib.IdleAdd(onIdle)
-	if err != nil {
-		log.Fatal("could not add idle function:", err)
-	}
-
 	application, err := gtk.ApplicationNew("com.github.tbuen.gocmd", glib.APPLICATION_FLAGS_NONE)
 	if err != nil {
 		log.Fatal("could not create application:", err)
@@ -36,11 +31,20 @@ func Run() int {
 
 func onStartup(application *gtk.Application) {
 	log.Println(log.MOD_MAIN, "startup")
+	_, err := glib.IdleAdd(onIdle)
+	if err != nil {
+		log.Fatal("could not add idle function:", err)
+	}
 }
 
 func onActivate(application *gtk.Application) {
 	log.Println(log.MOD_MAIN, "activate")
-	gui.ShowWindow(application, name+" "+version)
+	window := application.GetActiveWindow()
+	if window == nil {
+		gui.NewWindow(application, name+" "+version)
+	} else {
+		window.Present()
+	}
 }
 
 func onShutdown(application *gtk.Application) {

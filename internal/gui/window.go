@@ -15,7 +15,7 @@ func init() {
 	fs.RegisterRefresh(Refresh)
 }
 
-func ShowWindow(app *gtk.Application, title string) {
+func NewWindow(app *gtk.Application, title string) {
 	var err error
 	window, err = gtk.ApplicationWindowNew(app)
 	if err != nil {
@@ -33,7 +33,8 @@ func ShowWindow(app *gtk.Application, title string) {
 
 	window.Add(da)
 	window.SetTitle(title)
-	window.SetDefaultSize(1000, 600)
+	window.SetDefaultSize(800, 500)
+	window.Maximize()
 	window.ShowAll()
 }
 
