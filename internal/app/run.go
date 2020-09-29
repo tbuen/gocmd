@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/tbuen/gocmd/internal/config"
 	"github.com/tbuen/gocmd/internal/fs"
 	"github.com/tbuen/gocmd/internal/gui"
 	"github.com/tbuen/gocmd/internal/log"
@@ -15,11 +16,11 @@ var version = "develop"
 var runIdle = true
 
 func Run() int {
-	log.Println(log.MOD_MAIN, name, version)
+	log.Println(log.MAIN, name+" "+version)
 
 	application, err := gtk.ApplicationNew("com.github.tbuen.gocmd", glib.APPLICATION_FLAGS_NONE)
 	if err != nil {
-		log.Fatal("could not create application:", err)
+		log.Fatalln("could not create application: ", err)
 	}
 
 	application.Connect("startup", func() { onStartup(application) })
@@ -30,15 +31,15 @@ func Run() int {
 }
 
 func onStartup(application *gtk.Application) {
-	log.Println(log.MOD_MAIN, "startup")
+	log.Println(log.MAIN, "startup")
 	_, err := glib.IdleAdd(onIdle)
 	if err != nil {
-		log.Fatal("could not add idle function:", err)
+		log.Fatalln("Could not register idle function: ", err)
 	}
 }
 
 func onActivate(application *gtk.Application) {
-	log.Println(log.MOD_MAIN, "activate")
+	log.Println(log.MAIN, "activate")
 	window := application.GetActiveWindow()
 	if window == nil {
 		gui.NewWindow(application, name+" "+version)
@@ -48,7 +49,7 @@ func onActivate(application *gtk.Application) {
 }
 
 func onShutdown(application *gtk.Application) {
-	log.Println(log.MOD_MAIN, "shutdown")
+	log.Println(log.MAIN, "shutdown")
 	runIdle = false
 }
 

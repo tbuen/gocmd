@@ -2,23 +2,24 @@ package log
 
 import (
 	"fmt"
-	"log"
+	"os"
 )
 
-func Println(module int, text string, vars ...interface{}) {
-	if config&module != 0 {
-		s := text
+func Println(module int, vars ...interface{}) {
+	if modules&module != 0 {
+		var s string
 		for _, x := range vars {
-			s += " " + fmt.Sprint(x)
+			s += fmt.Sprint(x)
 		}
-		log.Println(s)
+		fmt.Println(s)
 	}
 }
 
-func Fatal(text string, vars ...interface{}) {
-	s := text
+func Fatalln(vars ...interface{}) {
+	var s string
 	for _, x := range vars {
-		s += " " + fmt.Sprint(x)
+		s += fmt.Sprint(x)
 	}
-	log.Fatal(s)
+	fmt.Println(s)
+	os.Exit(1)
 }

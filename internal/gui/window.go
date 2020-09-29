@@ -19,12 +19,12 @@ func NewWindow(app *gtk.Application, title string) {
 	var err error
 	window, err = gtk.ApplicationWindowNew(app)
 	if err != nil {
-		log.Fatal("Could not create application window.", err)
+		log.Fatalln("Could not create application window: ", err)
 	}
 
 	da, err := gtk.DrawingAreaNew()
 	if err != nil {
-		log.Fatal("Could not create drawing area.", err)
+		log.Fatalln("Could not create drawing area: ", err)
 	}
 
 	window.Connect("delete-event", onDelete)
@@ -45,14 +45,14 @@ func Refresh() {
 }
 
 func onDelete(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
-	log.Println(log.MOD_MAIN, "delete")
+	log.Println(log.GUI, "delete")
 	// return true to keep window open
 	return false
 }
 
 func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 	keyEvent := gdk.EventKeyNewFromEvent(ev)
-	log.Println(log.MOD_MAIN, "Key:", keyEvent.KeyVal())
+	log.Println(log.GUI, "key: ", keyEvent.KeyVal())
 	switch keyEvent.KeyVal() {
 	case gdk.KEY_q:
 		// TODO: Ctrl-q, Alt-q etc. should not work...

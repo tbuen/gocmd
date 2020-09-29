@@ -2,6 +2,4 @@
 
 package log
 
-const (
-	config = 0
-)
+const modules = GLOBAL

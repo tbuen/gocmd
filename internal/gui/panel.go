@@ -25,7 +25,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	//layout.SetText(".");
 	//layout.GetPixelSize(cw, ch);
 	lines := int((height - 19 - ch) / ch)
-	log.Println(log.MOD_GUI, "lines:", lines)
+	log.Println(log.GUI, "lines:", lines)
 
 	if selection >= offset+lines {
 		offset = selection - lines + 1

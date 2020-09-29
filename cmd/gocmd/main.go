@@ -8,6 +8,6 @@ import (
 
 func main() {
 	res := app.Run()
-	log.Println(log.MOD_MAIN, "Application exits:", res)
+	log.Println(log.MAIN, "Application exits: ", res)
 	os.Exit(res)
 }
