@@ -1,8 +1,10 @@
 package fs
 
 import (
+	"github.com/tbuen/gocmd/internal/config"
 	"github.com/tbuen/gocmd/internal/log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -123,7 +125,20 @@ func (d *dir) Enter() {
 				d.selection = 0
 				d.Reload()
 			} else {
-				// TODO
+				name := d.path + string(filepath.Separator) + d.files[d.selection].Name()
+				ext := filepath.Ext(name)
+				if len(ext) > 0 {
+					cmd, args := config.FileCmd(ext[1:])
+					if cmd != "" {
+						args = append(args, name)
+						log.Println(log.DIR, "Exec command: "+cmd+" ", args)
+						command := exec.Command(cmd, args...)
+						err := command.Start()
+						if err != nil {
+							log.Println(log.DIR, "Failed: ", err)
+						}
+					}
+				}
 			}
 		}
 	}

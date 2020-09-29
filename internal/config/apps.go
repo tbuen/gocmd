@@ -14,6 +14,7 @@ type extcfg struct {
 	descr string
 	color Color
 	cmd   string
+	args  []string
 }
 
 var extcfgs map[string]extcfg
@@ -22,8 +23,9 @@ func Read() {
 	type App struct {
 		Descr string   `xml:"descr,attr"`
 		Color string   `xml:"color,attr"`
-		Ext   []string `xml:"ext"`
+		Exts  []string `xml:"ext"`
 		Cmd   string   `xml:"cmd"`
+		Args  []string `xml:"arg"`
 	}
 	type AppConfig struct {
 		XMLName xml.Name `xml:"apps"`
@@ -71,14 +73,15 @@ func Read() {
 		} else {
 			log.Println(log.GLOBAL, "Invalid color: ", a.Color, " ("+filenameApps+")")
 		}
-		for _, e := range a.Ext {
-			extcfgs[e] = extcfg{a.Descr, c, a.Cmd}
+		for _, e := range a.Exts {
+			extcfgs[e] = extcfg{a.Descr, c, a.Cmd, a.Args}
 		}
 		log.Println(log.CONFIG, i, ". Descr: ", a.Descr)
 		log.Println(log.CONFIG, i, ". Color: ", a.Color)
 		log.Println(log.CONFIG, i, ". Color: ", c)
-		log.Println(log.CONFIG, i, ". Ext: ", a.Ext)
+		log.Println(log.CONFIG, i, ". Exts: ", a.Exts)
 		log.Println(log.CONFIG, i, ". Cmd: ", a.Cmd)
+		log.Println(log.CONFIG, i, ". Args: ", a.Args)
 	}
 	log.Println(log.CONFIG, "Number of extensions: ", len(extcfgs))
 	log.Println(log.CONFIG, "Extensions: ", extcfgs)
@@ -87,6 +90,14 @@ func Read() {
 func FileColor(ext string) (c Color) {
 	if e, ok := extcfgs[ext]; ok {
 		c = e.color
+	}
+	return
+}
+
+func FileCmd(ext string) (c string, a []string) {
+	if e, ok := extcfgs[ext]; ok {
+		c = e.cmd
+		a = e.args
 	}
 	return
 }

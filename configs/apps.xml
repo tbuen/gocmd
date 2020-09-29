@@ -12,6 +12,11 @@
    </app>
    <app descr="movie" color="#FF0000">
       <ext>mpg</ext>
-      <cmd>vlc</cmd>
+      <ext>mp4</ext>
+      <cmd>cvlc</cmd>
+      <arg>--fullscreen</arg>
+      <arg>--video-on-top</arg>
+      <arg>--no-video-title-show</arg>
+      <arg>--play-and-exit</arg>
    </app>
 </apps>
