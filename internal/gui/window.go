@@ -72,7 +72,7 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 	case gdk.KEY_g, gdk.KEY_Home:
 		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(0)
 	case gdk.KEY_G, gdk.KEY_End:
-		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(len(fs.GetDirectory(fs.PANEL_ACTIVE).Files()) - 1)
+		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(-1)
 	case gdk.KEY_m:
 		fs.GetDirectory(fs.PANEL_ACTIVE).ToggleMarkSelected()
 	case gdk.KEY_M:

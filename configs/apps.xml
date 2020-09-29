@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<apps>
+   <app descr="document" color="#0000FF">
+      <ext>pdf</ext>
+      <ext>ps</ext>
+      <cmd>evince</cmd>
+   </app>
+   <app descr="image" color="#008800">
+      <ext>jpg</ext>
+      <ext>png</ext>
+      <cmd>gimp</cmd>
+   </app>
+   <app descr="movie" color="#FF0000">
+      <ext>mpg</ext>
+      <cmd>vlc</cmd>
+   </app>
+</apps>

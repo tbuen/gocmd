@@ -1,17 +1,17 @@
 package fs
 
 const (
-	PANEL_LEFT   = 0
-	PANEL_RIGHT  = 1
-	PANEL_ACTIVE = 2
+	PANEL_LEFT = iota
+	PANEL_RIGHT
+	PANEL_ACTIVE
 )
 
 var (
 	tabs   [2][]Directory
-	active int = PANEL_LEFT
+	active = PANEL_LEFT
 )
 
-func init() {
+func Load() {
 	left := newDirectory("")
 	right := newDirectory("")
 	tabs[PANEL_LEFT] = append(tabs[PANEL_LEFT], left)
@@ -33,13 +33,16 @@ func TogglePanel() {
 	guiRefresh()
 }
 
-func GetDirectory(index int) Directory {
-	switch index {
+func GetDirectory(panel int) (d Directory) {
+	switch panel {
 	case PANEL_LEFT, PANEL_RIGHT:
-		return tabs[index][0]
+		if len(tabs[panel]) > 0 {
+			d = tabs[panel][0]
+		}
 	case PANEL_ACTIVE:
-		return tabs[active][0]
-	default:
-		return nil
+		if len(tabs[active]) > 0 {
+			d = tabs[active][0]
+		}
 	}
+	return
 }

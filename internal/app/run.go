@@ -36,6 +36,8 @@ func onStartup(application *gtk.Application) {
 	if err != nil {
 		log.Fatalln("Could not register idle function: ", err)
 	}
+	config.Read()
+	fs.Load()
 }
 
 func onActivate(application *gtk.Application) {

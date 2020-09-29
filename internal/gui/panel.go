@@ -12,15 +12,19 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	//    int cw, ch;
 	ch := 15.0
 
-	state := dir.State()
-	selection := dir.Selection()
-	offset := dir.DispOffset()
-
 	context.SetSourceRGB(0, 0, 0)
 	context.Rectangle(5, 5, width-8, height-9)
 	context.Stroke()
 	context.Rectangle(6, 6, width-10, height-10)
 	context.Clip()
+
+	if dir == nil {
+		return
+	}
+
+	state := dir.State()
+	selection := dir.Selection()
+	offset := dir.DispOffset()
 
 	//layout.SetText(".");
 	//layout.GetPixelSize(cw, ch);
@@ -71,7 +75,8 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 				context.Rectangle(8, 11+(float64(i)+1)*ch, width-14, ch)
 				context.Stroke()
 			}
-			context.SetSourceRGB(0, 0, 0)
+			color := file.Color()
+			context.SetSourceRGB(color[0], color[1], color[2])
 			context.MoveTo(10, 10+(float64(i)+1)*ch)
 			if file.IsDir() {
 				layout.SetText("["+file.Name()+"]", -1)

@@ -175,7 +175,7 @@ func (d *dir) SetSelectionRelative(n int) {
 func (d *dir) SetSelectionAbsolute(n int) {
 	if d.state == STATE_IDLE {
 		d.selection = n
-		if d.selection >= len(d.files) {
+		if d.selection < 0 || d.selection >= len(d.files) {
 			d.selection = len(d.files) - 1
 		}
 		guiRefresh()
