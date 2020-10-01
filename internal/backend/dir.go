@@ -1,4 +1,4 @@
-package fs
+package backend
 
 import (
 	"github.com/tbuen/gocmd/internal/config"
@@ -114,22 +114,17 @@ func (d *dir) GoUp() {
 func (d *dir) Enter() {
 	if d.state == STATE_IDLE {
 		if d.selection < len(d.files) {
-			if d.files[d.selection].IsDir() {
+			file := d.files[d.selection]
+			if file.Dir() {
 				d.dispOffsetHist[d.path] = d.dispOffset
-				if d.path == string(filepath.Separator) {
-					d.path += d.files[d.selection].Name()
-				} else {
-					d.path += string(filepath.Separator) + d.files[d.selection].Name()
-				}
+				d.path = file.Path()
 				d.dispOffset = 0
 				d.selection = 0
 				d.Reload()
 			} else {
-				file := d.files[d.selection]
-				fullname := d.path + string(filepath.Separator) + file.Name()
 				cmd, args := config.FileCmd(file.Ext())
 				if cmd != "" {
-					args = append(args, fullname)
+					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)
 					command := exec.Command(cmd, args...)
 					err := command.Start()
@@ -221,13 +216,18 @@ func reloadRoutine(d *dir) {
 			log.Println(log.DIR, "go routine for path", d.path, "received CMD_RELOAD")
 			success := false
 			if dir, err := os.Open(d.path); err == nil {
-				if fileinfo, err := dir.Readdir(0); err == nil {
+				if names, err := dir.Readdirnames(0); err == nil {
 					d.files = d.files[0:0]
 					log.Println(log.DIR, "before: len:", len(d.files), "cap:", cap(d.files))
-					for _, fi := range fileinfo {
+					for _, name := range names {
 						//time.Sleep(100 * time.Millisecond)
-						if fi.Name()[0] != '.' {
-							d.files = append(d.files, newFile(fi))
+						if name[0] != '.' {
+							log.Println(log.DIR, "creating file", d.path+string(filepath.Separator)+name)
+							if file := newFile(d.path + string(filepath.Separator) + name); file != nil {
+								d.files = append(d.files, file)
+							} else {
+								log.Println(log.DIR, "Failed!!")
+							}
 						}
 					}
 					orderedBy(dirFirst, name).sort(d.files)

@@ -1,4 +1,4 @@
-package fs
+package backend
 
 const (
 	PANEL_LEFT = iota

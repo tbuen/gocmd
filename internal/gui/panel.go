@@ -3,11 +3,11 @@ package gui
 import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
-	"github.com/tbuen/gocmd/internal/fs"
+	"github.com/tbuen/gocmd/internal/backend"
 	"github.com/tbuen/gocmd/internal/log"
 )
 
-func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir fs.Directory) {
+func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir backend.Directory) {
 
 	//    int cw, ch;
 	ch := 15.0
@@ -50,22 +50,22 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	context.Fill()
 
 	switch state {
-	case fs.STATE_IDLE:
+	case backend.STATE_IDLE:
 		context.SetSourceRGB(1, 1, 1)
-	case fs.STATE_ERROR:
+	case backend.STATE_ERROR:
 		context.SetSourceRGB(1, 0, 0)
-	case fs.STATE_RELOAD:
+	case backend.STATE_RELOAD:
 		context.SetSourceRGB(1, 1, 0)
 	}
 	context.MoveTo(10, 8)
 	layout.SetText(dir.Path(), -1)
 	pango.CairoShowLayout(context, layout)
 
-	if state == fs.STATE_IDLE {
+	if state == backend.STATE_IDLE {
 		files := dir.Files()
 		for i := 0; i <= lines && offset+i < len(files); i++ {
 			file := files[offset+i]
-			if file.IsMarked() {
+			if file.Marked() {
 				context.SetSourceRGB(0xFF/255.0, 0xA0/255.0, 0x90/255.0)
 				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
 				context.Fill()
@@ -78,10 +78,23 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			color := file.Color()
 			context.SetSourceRGB(color[0], color[1], color[2])
 			context.MoveTo(10, 10+(float64(i)+1)*ch)
-			if file.IsDir() {
-				layout.SetText("["+file.Name()+"]", -1)
+			link, linkOk, linkTarget := file.Link()
+			if link {
+				if linkOk {
+					if file.Dir() {
+						layout.SetText("["+file.Name()+"] -> "+linkTarget, -1)
+					} else {
+						layout.SetText(file.Name()+" -> "+linkTarget, -1)
+					}
+				} else {
+					layout.SetText(file.Name()+" -| "+linkTarget, -1)
+				}
 			} else {
-				layout.SetText(file.Name(), -1)
+				if file.Dir() {
+					layout.SetText("["+file.Name()+"]", -1)
+				} else {
+					layout.SetText(file.Name(), -1)
+				}
 			}
 			pango.CairoShowLayout(context, layout)
 		}

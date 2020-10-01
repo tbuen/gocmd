@@ -5,14 +5,14 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/gotk3/gotk3/pango"
-	"github.com/tbuen/gocmd/internal/fs"
+	"github.com/tbuen/gocmd/internal/backend"
 	"github.com/tbuen/gocmd/internal/log"
 )
 
 var window *gtk.ApplicationWindow
 
 func init() {
-	fs.RegisterRefresh(Refresh)
+	backend.RegisterRefresh(Refresh)
 }
 
 func NewWindow(app *gtk.Application, title string) {
@@ -58,33 +58,33 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 		// TODO: Ctrl-q, Alt-q etc. should not work...
 		win.Close()
 	case gdk.KEY_Tab:
-		fs.TogglePanel()
+		backend.TogglePanel()
 	case gdk.KEY_r:
-		fs.GetDirectory(fs.PANEL_ACTIVE).Reload()
+		backend.GetDirectory(backend.PANEL_ACTIVE).Reload()
 	case gdk.KEY_j, gdk.KEY_Down:
-		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(1)
+		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(1)
 	case gdk.KEY_J, gdk.KEY_Page_Down:
-		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(20)
+		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(20)
 	case gdk.KEY_k, gdk.KEY_Up:
-		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(-1)
+		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(-1)
 	case gdk.KEY_K, gdk.KEY_Page_Up:
-		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionRelative(-20)
+		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(-20)
 	case gdk.KEY_g, gdk.KEY_Home:
-		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(0)
+		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionAbsolute(0)
 	case gdk.KEY_G, gdk.KEY_End:
-		fs.GetDirectory(fs.PANEL_ACTIVE).SetSelectionAbsolute(-1)
+		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionAbsolute(-1)
 	case gdk.KEY_m:
-		fs.GetDirectory(fs.PANEL_ACTIVE).ToggleMarkSelected()
+		backend.GetDirectory(backend.PANEL_ACTIVE).ToggleMarkSelected()
 	case gdk.KEY_M:
-		fs.GetDirectory(fs.PANEL_ACTIVE).ToggleMarkAll()
+		backend.GetDirectory(backend.PANEL_ACTIVE).ToggleMarkAll()
 	case gdk.KEY_u, gdk.KEY_numbersign:
-		fs.GetDirectory(fs.PANEL_ACTIVE).GoUp()
+		backend.GetDirectory(backend.PANEL_ACTIVE).GoUp()
 	case gdk.KEY_Return:
-		fs.GetDirectory(fs.PANEL_ACTIVE).Enter()
+		backend.GetDirectory(backend.PANEL_ACTIVE).Enter()
 	case gdk.KEY_asciicircum:
-		fs.GetDirectory(fs.PANEL_ACTIVE).Root()
+		backend.GetDirectory(backend.PANEL_ACTIVE).Root()
 	case gdk.KEY_asciitilde:
-		fs.GetDirectory(fs.PANEL_ACTIVE).Home()
+		backend.GetDirectory(backend.PANEL_ACTIVE).Home()
 	}
 }
 
@@ -101,11 +101,11 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 
 	context.Save()
 	context.Translate(0, 0)
-	drawPanel(context, layout, float64(width/2), float64(height), fs.ActivePanel() == fs.PANEL_LEFT, fs.GetDirectory(fs.PANEL_LEFT))
+	drawPanel(context, layout, float64(width/2), float64(height), backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
 	context.Restore()
 
 	context.Save()
 	context.Translate(float64(width/2), 0)
-	drawPanel(context, layout, float64(width/2), float64(height), fs.ActivePanel() == fs.PANEL_RIGHT, fs.GetDirectory(fs.PANEL_RIGHT))
+	drawPanel(context, layout, float64(width/2), float64(height), backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
 	context.Restore()
 }

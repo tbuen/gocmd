@@ -1,4 +1,4 @@
-package fs
+package backend
 
 import (
 	"sort"
@@ -69,5 +69,5 @@ func name(f1, f2 File) bool {
 }
 
 func dirFirst(f1, f2 File) bool {
-	return f1.IsDir() && !f2.IsDir()
+	return f1.Dir() && !f2.Dir()
 }
