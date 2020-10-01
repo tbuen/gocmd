@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- sample config, copy to ~/.config/gocmd/apps.xml -->
 <apps>
    <app descr="document" color="#0000FF">
       <ext>pdf</ext>
