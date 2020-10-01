@@ -78,24 +78,35 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			color := file.Color()
 			context.SetSourceRGB(color[0], color[1], color[2])
 			context.MoveTo(10, 10+(float64(i)+1)*ch)
+			var line string
 			link, linkOk, linkTarget := file.Link()
 			if link {
 				if linkOk {
-					if file.Dir() {
-						layout.SetText("["+file.Name()+"] -> "+linkTarget, -1)
-					} else {
-						layout.SetText(file.Name()+" -> "+linkTarget, -1)
-					}
+					//if file.Dir() {
+					//	line = "[" + file.Name() + "] -> " + linkTarget
+					//} else {
+					line = file.Name() + " -> " + linkTarget
+					//}
 				} else {
-					layout.SetText(file.Name()+" -| "+linkTarget, -1)
+					line = file.Name() + " -| " + linkTarget
 				}
 			} else {
-				if file.Dir() {
-					layout.SetText("["+file.Name()+"]", -1)
-				} else {
-					layout.SetText(file.Name(), -1)
-				}
+				//if file.Dir() {
+				//	line = "[" + file.Name() + "]"
+				//} else {
+				line = file.Name()
+				//}
 			}
+			if file.Dir() {
+				line = "/" + line
+			} else if file.Pipe() {
+				line = "|" + line
+			} else if file.Socket() {
+				line = "=" + line
+			} else {
+				line = " " + line
+			}
+			layout.SetText(line, -1)
 			pango.CairoShowLayout(context, layout)
 		}
 	}

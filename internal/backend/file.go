@@ -12,21 +12,20 @@ type File interface {
 	Ext() string
 	Color() config.Color
 	Dir() bool
+	Pipe() bool
+	Socket() bool
 	Link() (bool, bool, string)
 	Marked() bool
 	toggleMark()
 }
 
 type file struct {
-	path       string
-	name       string
-	ext        string
-	color      config.Color
-	directory  bool
-	link       bool
-	linkOk     bool
-	linkTarget string
-	marked     bool
+	path, name, ext         string
+	color                   config.Color
+	directory, pipe, socket bool
+	link, linkOk            bool
+	linkTarget              string
+	marked                  bool
 }
 
 func newFile(path string) *file {
@@ -44,13 +43,24 @@ func newFile(path string) *file {
 	}
 	f.color = config.FileColor(f.ext)
 	f.directory = info.IsDir()
+	f.pipe = info.Mode()&os.ModeNamedPipe != 0
+	f.socket = info.Mode()&os.ModeSocket != 0
+
 	f.link = info.Mode()&os.ModeSymlink != 0
 	if f.link {
 		if f.linkTarget, err = os.Readlink(f.path); err == nil {
-			if target := newFile(filepath.Clean(filepath.Dir(f.path) + string(filepath.Separator) + f.linkTarget)); target != nil {
+			var targetName string
+			if f.linkTarget[0] == filepath.Separator {
+				targetName = filepath.Clean(f.linkTarget)
+			} else {
+				targetName = filepath.Clean(filepath.Dir(f.path) + string(filepath.Separator) + f.linkTarget)
+			}
+			if target := newFile(targetName); target != nil {
 				f.linkOk = !target.link || target.linkOk
-				if f.linkOk && target.directory {
-					f.directory = true
+				if f.linkOk {
+					f.directory = target.directory
+					f.pipe = target.pipe
+					f.socket = target.socket
 				}
 			}
 		}
@@ -72,6 +82,14 @@ func (f *file) Ext() string {
 
 func (f *file) Dir() bool {
 	return f.directory
+}
+
+func (f *file) Pipe() bool {
+	return f.pipe
+}
+
+func (f *file) Socket() bool {
+	return f.socket
 }
 
 func (f *file) Link() (bool, bool, string) {
