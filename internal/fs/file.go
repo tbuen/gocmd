@@ -8,6 +8,7 @@ import (
 
 type File interface {
 	Name() string
+	Ext() string
 	IsDir() bool
 	IsMarked() bool
 	Color() config.Color
@@ -16,6 +17,7 @@ type File interface {
 
 type file struct {
 	name      string
+	ext       string
 	directory bool
 	regular   bool
 	symlink   bool
@@ -26,20 +28,24 @@ type file struct {
 func newFile(info os.FileInfo) File {
 	f := file{}
 	f.name = info.Name()
+	f.ext = filepath.Ext(f.name)
+	if len(f.ext) > 0 {
+		f.ext = f.ext[1:]
+	}
 	f.directory = info.IsDir()
 	f.regular = info.Mode().IsRegular()
 	f.symlink = info.Mode()&os.ModeSymlink != 0
 	f.marked = false
-	ext := filepath.Ext(f.name)
-	if len(ext) > 0 {
-		ext = ext[1:]
-	}
-	f.color = config.FileColor(ext)
+	f.color = config.FileColor(f.ext)
 	return &f
 }
 
 func (f *file) Name() string {
 	return f.name
+}
+
+func (f *file) Ext() string {
+	return f.ext
 }
 
 func (f *file) IsDir() bool {

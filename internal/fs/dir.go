@@ -125,18 +125,16 @@ func (d *dir) Enter() {
 				d.selection = 0
 				d.Reload()
 			} else {
-				name := d.path + string(filepath.Separator) + d.files[d.selection].Name()
-				ext := filepath.Ext(name)
-				if len(ext) > 0 {
-					cmd, args := config.FileCmd(ext[1:])
-					if cmd != "" {
-						args = append(args, name)
-						log.Println(log.DIR, "Exec command: "+cmd+" ", args)
-						command := exec.Command(cmd, args...)
-						err := command.Start()
-						if err != nil {
-							log.Println(log.DIR, "Failed: ", err)
-						}
+				file := d.files[d.selection]
+				fullname := d.path + string(filepath.Separator) + file.Name()
+				cmd, args := config.FileCmd(file.Ext())
+				if cmd != "" {
+					args = append(args, fullname)
+					log.Println(log.DIR, "Exec command:", cmd, args)
+					command := exec.Command(cmd, args...)
+					err := command.Start()
+					if err != nil {
+						log.Println(log.DIR, "Failed: ", err)
 					}
 				}
 			}
@@ -219,15 +217,14 @@ func (d *dir) ToggleMarkAll() {
 
 func reloadRoutine(d *dir) {
 	for i := <-d.ch; i != 0; i = <-d.ch {
-		log.Println(log.DIR, "go routine for path", d.path, "received", i)
 		if i == CMD_RELOAD {
+			log.Println(log.DIR, "go routine for path", d.path, "received CMD_RELOAD")
 			success := false
 			if dir, err := os.Open(d.path); err == nil {
 				if fileinfo, err := dir.Readdir(0); err == nil {
 					d.files = d.files[0:0]
-					log.Println(log.DIR, "vorher: len:", len(d.files), "cap:", cap(d.files))
+					log.Println(log.DIR, "before: len:", len(d.files), "cap:", cap(d.files))
 					for _, fi := range fileinfo {
-						log.Println(log.DIR, "Datei: ", fi.Name())
 						//time.Sleep(100 * time.Millisecond)
 						if fi.Name()[0] != '.' {
 							d.files = append(d.files, newFile(fi))
@@ -241,23 +238,23 @@ func reloadRoutine(d *dir) {
 							break
 						}
 					}
-					log.Println(log.DIR, "nachher: len:", len(d.files), "cap:", cap(d.files))
+					log.Println(log.DIR, "after: len:", len(d.files), "cap:", cap(d.files))
 					if offset, ok := d.dispOffsetHist[d.path]; ok {
 						d.dispOffset = offset
 						delete(d.dispOffsetHist, d.path)
 					}
 					success = true
-
 				} else {
 					log.Println(log.DIR, "error reading", d.path)
 				}
 				dir.Close()
 			} else {
 				log.Println(log.DIR, "error opening", d.path)
-
 			}
 			m := msg{success, d}
 			ch <- m
+		} else {
+			log.Println(log.DIR, "go routine for path", d.path, "received unknown command")
 		}
 	}
 	log.Println(log.DIR, "go routine for path", d.path, "exiting...")

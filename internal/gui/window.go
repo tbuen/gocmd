@@ -52,7 +52,7 @@ func onDelete(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
 
 func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 	keyEvent := gdk.EventKeyNewFromEvent(ev)
-	log.Println(log.GUI, "key: ", keyEvent.KeyVal())
+	log.Println(log.GUI, "key pressed:", keyEvent.KeyVal())
 	switch keyEvent.KeyVal() {
 	case gdk.KEY_q:
 		// TODO: Ctrl-q, Alt-q etc. should not work...

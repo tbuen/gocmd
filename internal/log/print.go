@@ -7,19 +7,11 @@ import (
 
 func Println(module int, vars ...interface{}) {
 	if modules&module != 0 {
-		var s string
-		for _, x := range vars {
-			s += fmt.Sprint(x)
-		}
-		fmt.Println(s)
+		fmt.Println(vars...)
 	}
 }
 
 func Fatalln(vars ...interface{}) {
-	var s string
-	for _, x := range vars {
-		s += fmt.Sprint(x)
-	}
-	fmt.Println(s)
+	fmt.Println(vars...)
 	os.Exit(1)
 }

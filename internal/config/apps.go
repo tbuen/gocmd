@@ -34,30 +34,30 @@ func Read() {
 
 	file, err := os.Open(filenameApps)
 	if err != nil {
-		log.Println(log.GLOBAL, "Could not open ", filenameApps)
+		log.Println(log.GLOBAL, "Could not open", filenameApps)
 		return
 	}
 	defer file.Close()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		log.Println(log.GLOBAL, "Could not stat ", filenameApps)
+		log.Println(log.GLOBAL, "Could not stat", filenameApps)
 		return
 	}
 	buffer := make([]byte, fileInfo.Size())
 	_, err = file.ReadAt(buffer, 0)
 	if err != nil {
-		log.Println(log.GLOBAL, "Could not read ", filenameApps)
+		log.Println(log.GLOBAL, "Could not read", filenameApps)
 		return
 	}
 
 	appcfg := AppConfig{}
 	err = xml.Unmarshal(buffer, &appcfg)
 	if err != nil {
-		log.Println(log.GLOBAL, "Could not parse ", filenameApps, ": ", err)
+		log.Println(log.GLOBAL, "Could not parse", filenameApps, err)
 		return
 	}
-	log.Println(log.CONFIG, "Number of apps: ", len(appcfg.Apps))
+	log.Println(log.CONFIG, "Number of apps:", len(appcfg.Apps))
 
 	extcfgs = make(map[string]extcfg)
 	re := regexp.MustCompile("^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$")
@@ -71,20 +71,20 @@ func Read() {
 				}
 			}
 		} else {
-			log.Println(log.GLOBAL, "Invalid color: ", a.Color, " ("+filenameApps+")")
+			log.Println(log.GLOBAL, "Invalid color:", a.Color, "("+filenameApps+")")
 		}
 		for _, e := range a.Exts {
 			extcfgs[e] = extcfg{a.Descr, c, a.Cmd, a.Args}
 		}
-		log.Println(log.CONFIG, i, ". Descr: ", a.Descr)
-		log.Println(log.CONFIG, i, ". Color: ", a.Color)
-		log.Println(log.CONFIG, i, ". Color: ", c)
-		log.Println(log.CONFIG, i, ". Exts: ", a.Exts)
-		log.Println(log.CONFIG, i, ". Cmd: ", a.Cmd)
-		log.Println(log.CONFIG, i, ". Args: ", a.Args)
+		log.Println(log.CONFIG, i, "Descr:", a.Descr)
+		log.Println(log.CONFIG, i, "Color:", a.Color)
+		log.Println(log.CONFIG, i, "Color:", c)
+		log.Println(log.CONFIG, i, "Exts: ", a.Exts)
+		log.Println(log.CONFIG, i, "Cmd:  ", a.Cmd)
+		log.Println(log.CONFIG, i, "Args: ", a.Args)
 	}
-	log.Println(log.CONFIG, "Number of extensions: ", len(extcfgs))
-	log.Println(log.CONFIG, "Extensions: ", extcfgs)
+	log.Println(log.CONFIG, "Number of extensions:", len(extcfgs))
+	log.Println(log.CONFIG, "Extensions:", extcfgs)
 }
 
 func FileColor(ext string) (c Color) {

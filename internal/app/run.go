@@ -16,11 +16,11 @@ var version = "develop"
 var runIdle = true
 
 func Run() int {
-	log.Println(log.MAIN, name+" "+version)
+	log.Println(log.MAIN, name, version)
 
 	application, err := gtk.ApplicationNew("com.github.tbuen.gocmd", glib.APPLICATION_FLAGS_NONE)
 	if err != nil {
-		log.Fatalln("could not create application: ", err)
+		log.Fatalln("could not create application:", err)
 	}
 
 	application.Connect("startup", func() { onStartup(application) })
@@ -34,7 +34,7 @@ func onStartup(application *gtk.Application) {
 	log.Println(log.MAIN, "startup")
 	_, err := glib.IdleAdd(onIdle)
 	if err != nil {
-		log.Fatalln("Could not register idle function: ", err)
+		log.Fatalln("Could not register idle function:", err)
 	}
 	config.Read()
 	fs.Load()
