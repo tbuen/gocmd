@@ -4,6 +4,7 @@ import (
 	"github.com/tbuen/gocmd/internal/config"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type File interface {
@@ -15,6 +16,9 @@ type File interface {
 	Pipe() bool
 	Socket() bool
 	Link() (bool, bool, string)
+	//Size()
+	Time() time.Time
+	Size() int64
 	Marked() bool
 	toggleMark()
 }
@@ -25,6 +29,8 @@ type file struct {
 	directory, pipe, socket bool
 	link, linkOk            bool
 	linkTarget              string
+	time                    time.Time
+	size                    int64
 	marked                  bool
 }
 
@@ -45,6 +51,9 @@ func newFile(path string) *file {
 	f.directory = info.IsDir()
 	f.pipe = info.Mode()&os.ModeNamedPipe != 0
 	f.socket = info.Mode()&os.ModeSocket != 0
+
+	f.time = info.ModTime()
+	f.size = info.Size()
 
 	f.link = info.Mode()&os.ModeSymlink != 0
 	if f.link {
@@ -80,6 +89,10 @@ func (f *file) Ext() string {
 	return f.ext
 }
 
+func (f *file) Color() config.Color {
+	return f.color
+}
+
 func (f *file) Dir() bool {
 	return f.directory
 }
@@ -96,8 +109,12 @@ func (f *file) Link() (bool, bool, string) {
 	return f.link, f.linkOk, f.linkTarget
 }
 
-func (f *file) Color() config.Color {
-	return f.color
+func (f *file) Time() time.Time {
+	return f.time
+}
+
+func (f *file) Size() int64 {
+	return f.size
 }
 
 func (f *file) Marked() bool {
