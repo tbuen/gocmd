@@ -23,6 +23,7 @@ func setSourceColor(context *cairo.Context, color config.Color) {
 }
 
 func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir backend.Directory) {
+	const scrollbarWidth = 8.0
 
 	//    int cw, ch;
 	ch := 15.0
@@ -31,16 +32,12 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	context.SetSourceRGB(0, 0, 0)
 	context.Rectangle(5, 5, width-8, height-9)
 	context.Stroke()
-	context.Rectangle(6, 6, width-12, height-10)
+	context.Rectangle(6, 6, width-12, height-11)
 	context.Clip()
 
 	if dir == nil {
 		return
 	}
-
-	state := dir.State()
-	selection := dir.Selection()
-	offset := dir.DispOffset()
 
 	//layout.SetText(".");
 	//layout.GetPixelSize(cw, ch);
@@ -48,14 +45,6 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	log.Println(log.GUI, "lines:", lines)
 	columns := int((width - 19) / cw)
 	log.Println(log.GUI, "columns:", columns)
-
-	if selection >= offset+lines {
-		offset = selection - lines + 1
-	}
-	if selection < offset {
-		offset = selection
-	}
-	dir.SetDispOffset(offset)
 
 	if active {
 		//context.SetSourceRGB(0x00, 0x40/255.0, 0xb0/255.0)
@@ -67,6 +56,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
 
+	state := dir.State()
 	path := dir.Path()
 	if removeChars := utf8.RuneCountInString(path) - columns; removeChars > 0 {
 		for i := 0; i <= removeChars; i++ {
@@ -89,6 +79,21 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	pango.CairoShowLayout(context, layout)
 
 	if state == backend.STATE_IDLE {
+		width -= scrollbarWidth
+		columns = int((width - 19) / cw)
+		log.Println(log.GUI, "columns:", columns)
+
+		selection := dir.Selection()
+		offset := dir.DispOffset()
+
+		if selection >= offset+lines {
+			offset = selection - lines + 1
+		}
+		if selection < offset {
+			offset = selection
+		}
+		dir.SetDispOffset(offset)
+
 		files := dir.Files()
 		for i := 0; i <= lines && offset+i < len(files); i++ {
 			file := files[offset+i]
@@ -161,11 +166,11 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 					}*/
 				switch s := file.Size(); {
 				case s >= 1000000000:
-					size += fmt.Sprintf("%2d.%3d.%3d.%3d", s/1000000000, (s%1000000000)/1000000, (s%1000000)/1000, s%1000)
+					size += fmt.Sprintf("%2d.%03d.%03d.%03d", s/1000000000, (s%1000000000)/1000000, (s%1000000)/1000, s%1000)
 				case s >= 1000000:
-					size += fmt.Sprintf("   %3d.%3d.%3d", s/1000000, (s%1000000)/1000, s%1000)
+					size += fmt.Sprintf("   %3d.%03d.%03d", s/1000000, (s%1000000)/1000, s%1000)
 				case s >= 1000:
-					size += fmt.Sprintf("       %3d.%3d", s/1000, s%1000)
+					size += fmt.Sprintf("       %3d.%03d", s/1000, s%1000)
 				default:
 					size += fmt.Sprintf("           %3d", s)
 				}
@@ -191,6 +196,10 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			layout.SetText(line, -1)
 			pango.CairoShowLayout(context, layout)
 		}
+		context.Save()
+		context.Translate(width+7-13, 7+ch+2+1)
+		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3, len(files), lines, offset)
+		context.Restore()
 	}
 	/*long sel = directory.selection;
 	  for (long i = 0; i <= lines && directory.offset + i < directory.files.length; ++i) {
