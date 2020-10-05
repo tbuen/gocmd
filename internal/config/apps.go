@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type Color [3]float64
@@ -88,7 +89,7 @@ func Read() {
 			log.Println(log.GLOBAL, "Invalid color:", a.Color, "("+filenameApps+")")
 		}
 		for _, e := range a.Exts {
-			extcfgs[e] = extcfg{a.Descr, c, a.Cmd, a.Args}
+			extcfgs[strings.ToUpper(e)] = extcfg{a.Descr, c, a.Cmd, a.Args}
 		}
 		log.Println(log.CONFIG, i, "Descr:", a.Descr)
 		log.Println(log.CONFIG, i, "Color:", a.Color)
@@ -102,14 +103,14 @@ func Read() {
 }
 
 func FileColor(ext string) (c Color) {
-	if e, ok := extcfgs[ext]; ok {
+	if e, ok := extcfgs[strings.ToUpper(ext)]; ok {
 		c = e.color
 	}
 	return
 }
 
 func FileCmd(ext string) (c string, a []string) {
-	if e, ok := extcfgs[ext]; ok {
+	if e, ok := extcfgs[strings.ToUpper(ext)]; ok {
 		c = e.cmd
 		a = e.args
 	}

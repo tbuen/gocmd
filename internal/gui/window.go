@@ -50,51 +50,10 @@ func onDelete(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
 	return false
 }
 
-func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
-	keyEvent := gdk.EventKeyNewFromEvent(ev)
-	log.Println(log.GUI, "key pressed:", keyEvent.KeyVal())
-	switch keyEvent.KeyVal() {
-	case gdk.KEY_q:
-		// TODO: Ctrl-q, Alt-q etc. should not work...
-		win.Close()
-	case gdk.KEY_Tab:
-		backend.TogglePanel()
-	case gdk.KEY_r:
-		backend.GetDirectory(backend.PANEL_ACTIVE).Reload()
-	case gdk.KEY_j, gdk.KEY_Down:
-		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(1)
-	case gdk.KEY_J, gdk.KEY_Page_Down:
-		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(20)
-	case gdk.KEY_k, gdk.KEY_Up:
-		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(-1)
-	case gdk.KEY_K, gdk.KEY_Page_Up:
-		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionRelative(-20)
-	case gdk.KEY_g, gdk.KEY_Home:
-		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionAbsolute(0)
-	case gdk.KEY_G, gdk.KEY_End:
-		backend.GetDirectory(backend.PANEL_ACTIVE).SetSelectionAbsolute(-1)
-	case gdk.KEY_m:
-		backend.GetDirectory(backend.PANEL_ACTIVE).ToggleMarkSelected()
-	case gdk.KEY_M:
-		backend.GetDirectory(backend.PANEL_ACTIVE).ToggleMarkAll()
-	case gdk.KEY_u, gdk.KEY_numbersign:
-		backend.GetDirectory(backend.PANEL_ACTIVE).GoUp()
-	case gdk.KEY_Return:
-		backend.GetDirectory(backend.PANEL_ACTIVE).Enter()
-	case gdk.KEY_asciicircum:
-		backend.GetDirectory(backend.PANEL_ACTIVE).Root()
-	case gdk.KEY_asciitilde:
-		backend.GetDirectory(backend.PANEL_ACTIVE).Home()
-	case gdk.KEY_F3:
-		backend.GetDirectory(backend.PANEL_ACTIVE).View()
-	case gdk.KEY_F4:
-		backend.GetDirectory(backend.PANEL_ACTIVE).Edit()
-	}
-}
-
 func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
-	width := da.GetAllocatedWidth()
-	height := da.GetAllocatedHeight()
+	width := float64(da.GetAllocatedWidth())
+	height := float64(da.GetAllocatedHeight())
+	offsetTop := 0.0
 
 	context.SetAntialias(cairo.ANTIALIAS_NONE)
 	layout := pango.CairoCreateLayout(context)
@@ -103,13 +62,24 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	//layout.SetFontDescription(pango.FontDescriptionFromString("Cantarell 10"));
 	context.SetLineWidth(1)
 
+	if mode == MODE_SORT {
+		layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro 8"))
+		context.Save()
+		context.Translate(0, 0)
+		drawSort(context, layout, width, 30.0, backend.GetDirectory(backend.PANEL_ACTIVE))
+		context.Restore()
+		offsetTop = 30.0
+	}
+
+	layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro Semibold 8"))
+
 	context.Save()
-	context.Translate(0, 0)
-	drawPanel(context, layout, float64(width/2), float64(height), backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
+	context.Translate(0, offsetTop)
+	drawPanel(context, layout, width/2, height-offsetTop, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
 	context.Restore()
 
 	context.Save()
-	context.Translate(float64(width/2), 0)
-	drawPanel(context, layout, float64(width/2), float64(height), backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
+	context.Translate(width/2, offsetTop)
+	drawPanel(context, layout, width/2, height-offsetTop, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
 	context.Restore()
 }

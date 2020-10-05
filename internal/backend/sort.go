@@ -64,8 +64,36 @@ func (ms *multiSorter) Less(i, j int) bool {
 	return ms.less[k](p, q)
 }
 
-func name(f1, f2 File) bool {
+func nameAsc(f1, f2 File) bool {
 	return strings.ToUpper(f1.Name()) < strings.ToUpper(f2.Name())
+}
+
+func nameDesc(f1, f2 File) bool {
+	return strings.ToUpper(f1.Name()) > strings.ToUpper(f2.Name())
+}
+
+func extAsc(f1, f2 File) bool {
+	return strings.ToUpper(f1.Ext()) < strings.ToUpper(f2.Ext())
+}
+
+func extDesc(f1, f2 File) bool {
+	return strings.ToUpper(f1.Ext()) > strings.ToUpper(f2.Ext())
+}
+
+func sizeAsc(f1, f2 File) bool {
+	return f1.Size() < f2.Size()
+}
+
+func sizeDesc(f1, f2 File) bool {
+	return f1.Size() > f2.Size()
+}
+
+func timeAsc(f1, f2 File) bool {
+	return f1.Time().Before(f2.Time())
+}
+
+func timeDesc(f1, f2 File) bool {
+	return f1.Time().After(f2.Time())
 }
 
 func dirFirst(f1, f2 File) bool {

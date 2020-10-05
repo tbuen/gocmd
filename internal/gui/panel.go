@@ -200,6 +200,12 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 		context.Translate(width+7-13, 7+ch+2+1)
 		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3, len(files), lines, offset)
 		context.Restore()
+	} else {
+		width -= scrollbarWidth
+		context.Save()
+		context.Translate(width+7-13, 7+ch+2+1)
+		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3, 0, 0, 0)
+		context.Restore()
 	}
 	/*long sel = directory.selection;
 	  for (long i = 0; i <= lines && directory.offset + i < directory.files.length; ++i) {

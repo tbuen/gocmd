@@ -9,10 +9,13 @@ func drawScrollbar(context *cairo.Context, width, height float64, total, visible
 	//context.Rectangle(0, 0, width, height)
 	//context.Fill()
 	ratio := 1.0
+	start := 0.0
 	if total > visible {
 		ratio = float64(visible) / float64(total)
 	}
-	start := float64(offset) / float64(total) * height
+	if total > 0 {
+		start = float64(offset) / float64(total) * height
+	}
 	context.Rectangle(2, start, width-2, height*ratio)
 	context.Fill()
 }

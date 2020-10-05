@@ -19,6 +19,13 @@ const (
 	CMD_RELOAD = 1
 )
 
+const (
+	SORT_NAME = iota
+	SORT_EXT
+	SORT_SIZE
+	SORT_TIME
+)
+
 type Directory interface {
 	State() int
 	Path() string
@@ -37,6 +44,8 @@ type Directory interface {
 	Edit()
 	Root()
 	Home()
+	Sort() (int, bool)
+	SetSort(crit int, desc bool)
 }
 
 type dir struct {
@@ -44,6 +53,8 @@ type dir struct {
 	path           string
 	ch             chan int
 	files          []File
+	sortCrit       int
+	sortDesc       bool
 	selection      int
 	dispOffset     int
 	dispOffsetHist map[string]int
@@ -204,6 +215,19 @@ func (d *dir) Home() {
 	}
 }
 
+func (d *dir) Sort() (int, bool) {
+	return d.sortCrit, d.sortDesc
+}
+
+func (d *dir) SetSort(crit int, desc bool) {
+	if d.sortCrit != crit || d.sortDesc != desc {
+		d.sortCrit = crit
+		d.sortDesc = desc
+		d.sort()
+		guiRefresh()
+	}
+}
+
 func (d *dir) Selection() int {
 	return d.selection
 }
@@ -252,6 +276,34 @@ func (d *dir) ToggleMarkAll() {
 	guiRefresh()
 }
 
+func (d *dir) sort() {
+	if d.sortCrit == SORT_NAME {
+		if d.sortDesc {
+			orderedBy(dirFirst, nameDesc).sort(d.files)
+		} else {
+			orderedBy(dirFirst, nameAsc).sort(d.files)
+		}
+	} else if d.sortCrit == SORT_EXT {
+		if d.sortDesc {
+			orderedBy(dirFirst, extDesc, nameDesc).sort(d.files)
+		} else {
+			orderedBy(dirFirst, extAsc, nameAsc).sort(d.files)
+		}
+	} else if d.sortCrit == SORT_SIZE {
+		if d.sortDesc {
+			orderedBy(dirFirst, sizeDesc, nameDesc).sort(d.files)
+		} else {
+			orderedBy(dirFirst, sizeAsc, nameAsc).sort(d.files)
+		}
+	} else if d.sortCrit == SORT_TIME {
+		if d.sortDesc {
+			orderedBy(dirFirst, timeDesc, nameDesc).sort(d.files)
+		} else {
+			orderedBy(dirFirst, timeAsc, nameAsc).sort(d.files)
+		}
+	}
+}
+
 func reloadRoutine(d *dir) {
 	for i := <-d.ch; i != 0; i = <-d.ch {
 		if i == CMD_RELOAD {
@@ -272,7 +324,7 @@ func reloadRoutine(d *dir) {
 							}
 						}
 					}
-					orderedBy(dirFirst, name).sort(d.files)
+					d.sort()
 					for i, f := range d.files {
 						if f.Name() == d.selectDir {
 							d.selection = i
