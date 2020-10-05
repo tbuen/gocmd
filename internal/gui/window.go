@@ -85,6 +85,10 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 		backend.GetDirectory(backend.PANEL_ACTIVE).Root()
 	case gdk.KEY_asciitilde:
 		backend.GetDirectory(backend.PANEL_ACTIVE).Home()
+	case gdk.KEY_F3:
+		backend.GetDirectory(backend.PANEL_ACTIVE).View()
+	case gdk.KEY_F4:
+		backend.GetDirectory(backend.PANEL_ACTIVE).Edit()
 	}
 }
 

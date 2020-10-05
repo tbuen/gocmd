@@ -33,6 +33,8 @@ type Directory interface {
 	ToggleMarkAll()
 	GoUp()
 	Enter()
+	View()
+	Edit()
 	Root()
 	Home()
 }
@@ -123,6 +125,46 @@ func (d *dir) Enter() {
 				d.Reload()
 			} else {
 				cmd, args := config.FileCmd(file.Ext())
+				if cmd != "" {
+					args = append(args, file.Path())
+					log.Println(log.DIR, "Exec command:", cmd, args)
+					command := exec.Command(cmd, args...)
+					err := command.Start()
+					if err != nil {
+						log.Println(log.DIR, "Failed: ", err)
+					}
+				}
+			}
+		}
+	}
+}
+
+func (d *dir) View() {
+	if d.state == STATE_IDLE {
+		if d.selection < len(d.files) {
+			file := d.files[d.selection]
+			if !file.Dir() {
+				cmd, args := config.View()
+				if cmd != "" {
+					args = append(args, file.Path())
+					log.Println(log.DIR, "Exec command:", cmd, args)
+					command := exec.Command(cmd, args...)
+					err := command.Start()
+					if err != nil {
+						log.Println(log.DIR, "Failed: ", err)
+					}
+				}
+			}
+		}
+	}
+}
+
+func (d *dir) Edit() {
+	if d.state == STATE_IDLE {
+		if d.selection < len(d.files) {
+			file := d.files[d.selection]
+			if !file.Dir() {
+				cmd, args := config.Edit()
 				if cmd != "" {
 					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)

@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- sample config, copy to ~/.config/gocmd/apps.xml -->
 <apps>
+   <view>
+      <cmd>gnome-terminal</cmd>
+      <arg>--</arg>
+      <arg>less</arg>
+   </view>
+   <edit>
+      <cmd>gnome-terminal</cmd>
+      <arg>--</arg>
+      <arg>vim</arg>
+   </edit>
    <app descr="document" color="#0000FF">
       <ext>pdf</ext>
       <ext>ps</ext>

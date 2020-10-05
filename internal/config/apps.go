@@ -17,7 +17,14 @@ type extcfg struct {
 	args  []string
 }
 
+type progcfg struct {
+	cmd  string
+	args []string
+}
+
 var extcfgs map[string]extcfg
+var view progcfg
+var edit progcfg
 
 func Read() {
 	type App struct {
@@ -29,6 +36,8 @@ func Read() {
 	}
 	type AppConfig struct {
 		XMLName xml.Name `xml:"apps"`
+		View    App      `xml:"view"`
+		Edit    App      `xml:"edit"`
 		Apps    []App    `xml:"app"`
 	}
 
@@ -58,6 +67,11 @@ func Read() {
 		return
 	}
 	log.Println(log.CONFIG, "Number of apps:", len(appcfg.Apps))
+
+	view.cmd = appcfg.View.Cmd
+	view.args = appcfg.View.Args
+	edit.cmd = appcfg.Edit.Cmd
+	edit.args = appcfg.Edit.Args
 
 	extcfgs = make(map[string]extcfg)
 	re := regexp.MustCompile("^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$")
@@ -100,4 +114,12 @@ func FileCmd(ext string) (c string, a []string) {
 		a = e.args
 	}
 	return
+}
+
+func View() (string, []string) {
+	return view.cmd, view.args
+}
+
+func Edit() (string, []string) {
+	return edit.cmd, edit.args
 }
