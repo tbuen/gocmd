@@ -24,6 +24,9 @@
    <app descr="movie" color="#FF0000">
       <ext>mpg</ext>
       <ext>mp4</ext>
+      <ext>webm</ext>
+      <ext>avi</ext>
+      <ext>mov</ext>
       <cmd>cvlc</cmd>
       <arg>--fullscreen</arg>
       <arg>--video-on-top</arg>

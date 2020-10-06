@@ -10,6 +10,7 @@ import (
 const (
 	MODE_NORMAL = iota
 	MODE_SORT
+	MODE_VIEW
 )
 
 var mode int
@@ -23,6 +24,8 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 		keyNormal(win, keyEvent.KeyVal())
 	case MODE_SORT:
 		keySort(keyEvent.KeyVal())
+	case MODE_VIEW:
+		keyView(keyEvent.KeyVal())
 	}
 }
 
@@ -66,6 +69,9 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 		dir.Edit()
 	case gdk.KEY_s:
 		mode = MODE_SORT
+		Refresh()
+	case gdk.KEY_v:
+		mode = MODE_VIEW
 		Refresh()
 	}
 }

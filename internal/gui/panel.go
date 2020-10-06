@@ -176,7 +176,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 				}
 			}
 			time := file.Time().Format("02.01.2006 15:04")
-			neededSpace := 29 /*+ 6*/ + 3 + 10 + 13
+			neededSpace := 29 /*+ 6*/ + 3 + 10 + 13 + 3
 			desiredNameLen := 10
 			if columns-neededSpace > desiredNameLen {
 				desiredNameLen = columns - neededSpace
@@ -192,7 +192,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 				line += strings.Repeat(" ", addSpaces)
 			}
 			user, group := file.UserGroup()
-			line += " " + size + " " + time + " " + user + "." + group + " " + file.Perm()
+			line += " " + size + "  " + time + "  " + user + "." + group + "  " + file.Perm()
 
 			layout.SetText(line, -1)
 			pango.CairoShowLayout(context, layout)

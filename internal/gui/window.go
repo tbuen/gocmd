@@ -70,6 +70,14 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 		context.Restore()
 		offsetTop = 30.0
 	}
+	if mode == MODE_VIEW {
+		layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro 8"))
+		context.Save()
+		context.Translate(0, 0)
+		drawView(context, layout, width, 30.0)
+		context.Restore()
+		offsetTop = 30.0
+	}
 
 	layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro Semibold 8"))
 
