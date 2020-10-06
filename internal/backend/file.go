@@ -3,7 +3,10 @@ package backend
 import (
 	"github.com/tbuen/gocmd/internal/config"
 	"os"
+	"os/user"
 	"path/filepath"
+	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -19,6 +22,8 @@ type File interface {
 	//Size()
 	Time() time.Time
 	Size() int64
+	Perm() string
+	UserGroup() (string, string)
 	Marked() bool
 	toggleMark()
 }
@@ -31,6 +36,8 @@ type file struct {
 	linkTarget              string
 	time                    time.Time
 	size                    int64
+	perm                    string
+	user, group             string
 	marked                  bool
 }
 
@@ -43,17 +50,30 @@ func newFile(path string) *file {
 	f := new(file)
 	f.path = path
 	f.name = info.Name()
-	f.ext = filepath.Ext(f.name)
+	f.directory = info.IsDir()
+	if !f.directory {
+		f.ext = filepath.Ext(f.name)
+	}
 	if len(f.ext) > 0 {
 		f.ext = f.ext[1:]
 	}
 	f.color = config.FileColor(f.ext)
-	f.directory = info.IsDir()
 	f.pipe = info.Mode()&os.ModeNamedPipe != 0
 	f.socket = info.Mode()&os.ModeSocket != 0
 
 	f.time = info.ModTime()
 	f.size = info.Size()
+	f.perm = info.Mode().Perm().String()[1:]
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		f.user = strconv.FormatUint(uint64(stat.Uid), 10)
+		f.group = strconv.FormatUint(uint64(stat.Gid), 10)
+		if user, err := user.LookupId(f.user); err == nil {
+			f.user = user.Username
+		}
+		if group, err := user.LookupGroupId(f.group); err == nil {
+			f.group = group.Name
+		}
+	}
 
 	f.link = info.Mode()&os.ModeSymlink != 0
 	if f.link {
@@ -115,6 +135,14 @@ func (f *file) Time() time.Time {
 
 func (f *file) Size() int64 {
 	return f.size
+}
+
+func (f *file) Perm() string {
+	return f.perm
+}
+
+func (f *file) UserGroup() (string, string) {
+	return f.user, f.group
 }
 
 func (f *file) Marked() bool {

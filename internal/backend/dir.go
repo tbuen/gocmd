@@ -291,13 +291,13 @@ func (d *dir) sort() {
 		}
 	} else if d.sortCrit == SORT_SIZE {
 		if d.sortDesc {
-			orderedBy(dirFirst, sizeDesc, nameDesc).sort(d.files)
+			orderedBy(dirFirst, sizeDesc, nameAsc).sort(d.files)
 		} else {
 			orderedBy(dirFirst, sizeAsc, nameAsc).sort(d.files)
 		}
 	} else if d.sortCrit == SORT_TIME {
 		if d.sortDesc {
-			orderedBy(dirFirst, timeDesc, nameDesc).sort(d.files)
+			orderedBy(dirFirst, timeDesc, nameAsc).sort(d.files)
 		} else {
 			orderedBy(dirFirst, timeAsc, nameAsc).sort(d.files)
 		}

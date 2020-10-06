@@ -87,12 +87,12 @@ func keySort(key uint) {
 		if !desc {
 			desc = true
 		}
-      dir.SetSort(crit, desc)
+		dir.SetSort(crit, desc)
 	case gdk.KEY_k, gdk.KEY_Up:
 		if desc {
 			desc = false
 		}
-      dir.SetSort(crit, desc)
+		dir.SetSort(crit, desc)
 	case gdk.KEY_s, gdk.KEY_q, gdk.KEY_Escape, gdk.KEY_Return:
 		mode = MODE_NORMAL
 		Refresh()
