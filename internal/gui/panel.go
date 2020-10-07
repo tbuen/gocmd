@@ -1,21 +1,11 @@
 package gui
 
 import (
-	"fmt"
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/backend"
 	"github.com/tbuen/gocmd/internal/config"
-	"github.com/tbuen/gocmd/internal/log"
-	"strings"
 	"unicode/utf8"
-)
-
-const (
-	B = 1 << (10 * iota)
-	KB
-	MB
-	GB
 )
 
 func setSourceColor(context *cairo.Context, color config.Color) {
@@ -25,7 +15,6 @@ func setSourceColor(context *cairo.Context, color config.Color) {
 func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir backend.Directory) {
 	const scrollbarWidth = 8.0
 
-	//    int cw, ch;
 	ch := 15.0
 	cw := 6.0
 
@@ -42,13 +31,9 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	//layout.SetText(".");
 	//layout.GetPixelSize(cw, ch);
 	lines := int((height - 19 - ch) / ch)
-	log.Println(log.GUI, "lines:", lines)
 	columns := int((width - 19) / cw)
-	log.Println(log.GUI, "columns:", columns)
 
 	if active {
-		//context.SetSourceRGB(0x00, 0x40/255.0, 0xb0/255.0)
-		//context.SetSourceRGB(0, 0x50/255.0, 0x70/255.0)
 		context.SetSourceRGB(0x35/255.0, 0x84/255.0, 0xe4/255.0)
 	} else {
 		context.SetSourceRGB(0x70/255.0, 0x70/255.0, 0x70/255.0)
@@ -57,14 +42,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	context.Fill()
 
 	state := dir.State()
-	path := dir.Path()
-	if removeChars := utf8.RuneCountInString(path) - columns; removeChars > 0 {
-		for i := 0; i <= removeChars; i++ {
-			_, size := utf8.DecodeLastRuneInString(path)
-			path = path[:len(path)-size]
-		}
-		path += "\u2026"
-	}
+	path := restrictFront(dir.Path(), columns)
 
 	switch state {
 	case backend.STATE_IDLE:
@@ -81,7 +59,6 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	if state == backend.STATE_IDLE {
 		width -= scrollbarWidth
 		columns = int((width - 19) / cw)
-		log.Println(log.GUI, "columns:", columns)
 
 		selection := dir.Selection()
 		offset := dir.DispOffset()
@@ -95,10 +72,71 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 		dir.SetDispOffset(offset)
 
 		files := dir.Files()
+
+		minLenName := 15
+		extraLen := 0
+		var lenName, lenSize, lenTime, lenOwner, lenPerm int
+		showSize, showTime, showOwner, showPerm := view.size, view.time, view.owner, view.perm
+		if showSize {
+			var maxSize int64
+			for _, f := range files {
+				if s := f.Size(); s > maxSize {
+					maxSize = s
+				}
+			}
+			_, l := formatSize(maxSize)
+			if l < 5 {
+				l = 5
+			}
+			lenSize = l + 2
+			if minLenName+extraLen+lenSize <= columns {
+				extraLen += lenSize
+			} else {
+				showSize, showTime, showOwner, showPerm = false, false, false, false
+			}
+		}
+		if showTime {
+			lenTime = 18
+			if minLenName+extraLen+lenTime <= columns {
+				extraLen += lenTime
+			} else {
+				showTime, showOwner, showPerm = false, false, false
+			}
+		}
+		var maxlenUser, maxlenGroup int
+		if showOwner {
+			for _, f := range files {
+				user, group := f.UserGroup()
+				lu, lg := utf8.RuneCountInString(user), utf8.RuneCountInString(group)
+				if lu > maxlenUser {
+					maxlenUser = lu
+				}
+				if lg > maxlenGroup {
+					maxlenGroup = lg
+				}
+			}
+			lenOwner = maxlenUser + maxlenGroup + 3
+			if minLenName+extraLen+lenOwner <= columns {
+				extraLen += lenOwner
+			} else {
+				showOwner, showPerm = false, false
+			}
+		}
+		if showPerm {
+			lenPerm = 11
+			if minLenName+extraLen+lenPerm <= columns {
+				extraLen += lenPerm
+			} else {
+				showPerm = false
+			}
+		}
+		lenName = columns - extraLen
+
 		for i := 0; i <= lines && offset+i < len(files); i++ {
 			file := files[offset+i]
 			if file.Marked() {
-				context.SetSourceRGB(0xFF/255.0, 0xA0/255.0, 0x90/255.0)
+				context.SetSourceRGB(0xF2/255.0, 0x6B/255.0, 0x3A/255.0)
+				//context.SetSourceRGB(0xFF/255.0, 0xA0/255.0, 0x90/255.0)
 				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
 				context.Fill()
 			} else if i%2 == 0 {
@@ -115,9 +153,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 				context.Rectangle(8, 11+(float64(i)+1)*ch, width-14, ch)
 				context.Stroke()
 			}
-			color := file.Color()
-			//context.SetSourceRGB(color[0], color[1], color[2])
-			setSourceColor(context, color)
+			setSourceColor(context, file.Color())
 			context.MoveTo(10, 10+(float64(i)+1)*ch)
 
 			var line string
@@ -148,51 +184,30 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			} else {
 				line = " " + line
 			}
-			var size string
-			if file.Dir() {
-				size = "   " + "      <DIR>"
-			} else {
-				/*
-					size = fmt.Sprintf("%11d", file.Size())
-					switch s := file.Size(); {
-					case s >= GB:
-						size += fmt.Sprintf(" %4dG", s/GB)
-					case s >= MB:
-						size += fmt.Sprintf(" %4dM", s/MB)
-					case s >= KB:
-						size += fmt.Sprintf(" %4dK", s/KB)
-					default:
-						size += "      "//fmt.Sprintf(" %4dB", s)
-					}*/
-				switch s := file.Size(); {
-				case s >= 1000000000:
-					size += fmt.Sprintf("%2d.%03d.%03d.%03d", s/1000000000, (s%1000000000)/1000000, (s%1000000)/1000, s%1000)
-				case s >= 1000000:
-					size += fmt.Sprintf("   %3d.%03d.%03d", s/1000000, (s%1000000)/1000, s%1000)
-				case s >= 1000:
-					size += fmt.Sprintf("       %3d.%03d", s/1000, s%1000)
-				default:
-					size += fmt.Sprintf("           %3d", s)
+
+			line = restrictBack(line, lenName)
+			line = appendSpaces(line, lenName)
+
+			if showSize {
+				var size string
+				if file.Dir() {
+					size = "<DIR>"
+				} else {
+					size, _ = formatSize(file.Size())
 				}
+				line += prependSpaces(size, lenSize)
 			}
-			time := file.Time().Format("02.01.2006 15:04")
-			neededSpace := 29 /*+ 6*/ + 3 + 10 + 13 + 3
-			desiredNameLen := 10
-			if columns-neededSpace > desiredNameLen {
-				desiredNameLen = columns - neededSpace
+			if showTime {
+				time := file.Time().Format("02.01.2006 15:04")
+				line += "  " + time
 			}
-			if removeChars := utf8.RuneCountInString(line) - desiredNameLen; removeChars > 0 {
-				for i := 0; i <= removeChars; i++ {
-					_, size := utf8.DecodeLastRuneInString(line)
-					line = line[:len(line)-size]
-				}
-				line += "\u2026"
+			if showOwner {
+				user, group := file.UserGroup()
+				line += "  " + appendSpaces(user, maxlenUser) + " " + appendSpaces(group, maxlenGroup)
 			}
-			if addSpaces := desiredNameLen - utf8.RuneCountInString(line); addSpaces > 0 {
-				line += strings.Repeat(" ", addSpaces)
+			if showPerm {
+				line += "  " + file.Perm()
 			}
-			user, group := file.UserGroup()
-			line += " " + size + "  " + time + "  " + user + "." + group + "  " + file.Perm()
 
 			layout.SetText(line, -1)
 			pango.CairoShowLayout(context, layout)
@@ -208,35 +223,4 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3, 0, 0, 0)
 		context.Restore()
 	}
-	/*long sel = directory.selection;
-	  for (long i = 0; i <= lines && directory.offset + i < directory.files.length; ++i) {
-	     auto file = directory.files[directory.offset + i];
-	     if (file.marked) {
-	        context.setSourceRgb(0xFF/255.0, 0xA0/255.0, 0x90/255.0);
-	        context.rectangle(7, 11 + (i + 1) * ch, width - 13, ch);
-	       context.fill;
-	    }
-	    if (directory.focus && directory.offset + i == sel) {
-	        context.setSourceRgb(0, 0, 0);
-	        context.rectangle(8, 11 + (i + 1) * ch, width - 14, ch);
-	        context.stroke;
-	     }
-	     context.setSourceRgb(file.color[0]/255.0, file.color[1]/255.0, file.color[2]/255.0);
-	     context.moveTo(10, 10 + (i + 1) * ch);
-	     if (file.isLink && file.isDir) {
-	        layout.setText("[" ~ file.name ~ "] -> " ~ file.link);
-	     } else if (file.isLink) {
-	        layout.setText(file.name ~ " -> " ~ file.link);
-	     } else if (file.isDir) {
-	        layout.setText("[" ~ file.name ~ "]");
-	     } else {
-	        layout.setText(file.name);
-	     }
-	     PgCairo.showLayout(context, layout);
-	     auto time = file.time;
-	     context.moveTo(width - 10 - 19 * cw, 10 + (i + 1) * ch);
-	     layout.setText(format("%02d.%02d.%04d %02d:%02d:%02d", time.day, time.month, time.year, time.hour, time.minute, time.second));
-	     PgCairo.showLayout(context, layout);
-	  }*/
-
 }

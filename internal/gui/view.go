@@ -6,9 +6,11 @@ import (
 	"github.com/gotk3/gotk3/pango"
 )
 
-var view struct {
-	size, time, user, permissions bool
+type viewcfg struct {
+	size, time, owner, perm bool
 }
+
+var view = viewcfg{true, true, true, true}
 
 var viewIndex = 0
 
@@ -41,7 +43,7 @@ func drawView(context *cairo.Context, layout *pango.Layout, width, height float6
 	} else {
 		text += c + " modification time   "
 	}
-	if view.user {
+	if view.owner {
 		c = "\u2611"
 	} else {
 		c = "\u2610"
@@ -51,7 +53,7 @@ func drawView(context *cairo.Context, layout *pango.Layout, width, height float6
 	} else {
 		text += c + " user/group   "
 	}
-	if view.permissions {
+	if view.perm {
 		c = "\u2611"
 	} else {
 		c = "\u2610"
@@ -87,9 +89,9 @@ func keyView(key uint) {
 		} else if viewIndex == 1 {
 			view.time = !view.time
 		} else if viewIndex == 2 {
-			view.user = !view.user
+			view.owner = !view.owner
 		} else if viewIndex == 3 {
-			view.permissions = !view.permissions
+			view.perm = !view.perm
 		}
 		Refresh()
 	case gdk.KEY_v, gdk.KEY_q, gdk.KEY_Escape, gdk.KEY_Return:
