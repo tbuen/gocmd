@@ -5,6 +5,7 @@ import (
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/backend"
 	"github.com/tbuen/gocmd/internal/config"
+	"strconv"
 	"unicode/utf8"
 )
 
@@ -30,8 +31,11 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 
 	//layout.SetText(".");
 	//layout.GetPixelSize(cw, ch);
-	lines := int((height - 19 - ch) / ch)
+	lines := int((height - 19 - 17 - ch) / ch)
 	columns := int((width - 19) / cw)
+
+	state := dir.State()
+	path := restrictFront(dir.Path(), columns)
 
 	if active {
 		context.SetSourceRGB(0x35/255.0, 0x84/255.0, 0xe4/255.0)
@@ -40,9 +44,6 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	}
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
-
-	state := dir.State()
-	path := restrictFront(dir.Path(), columns)
 
 	switch state {
 	case backend.STATE_IDLE:
@@ -60,9 +61,16 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 		width -= scrollbarWidth
 		columns = int((width - 19) / cw)
 
+		files := dir.Files()
+
 		selection := dir.Selection()
 		offset := dir.DispOffset()
 
+		if len(files) <= lines {
+			offset = 0
+		} else if offset > len(files)-lines {
+			offset = len(files) - lines
+		}
 		if selection >= offset+lines {
 			offset = selection - lines + 1
 		}
@@ -70,8 +78,6 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			offset = selection
 		}
 		dir.SetDispOffset(offset)
-
-		files := dir.Files()
 
 		minLenName := 15
 		extraLen := 0
@@ -214,13 +220,67 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 		}
 		context.Save()
 		context.Translate(width+7-13, 7+ch+2+1)
-		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3, len(files), lines, offset)
+		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3-ch-4, len(files), lines, offset)
 		context.Restore()
 	} else {
 		width -= scrollbarWidth
 		context.Save()
 		context.Translate(width+7-13, 7+ch+2+1)
-		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3, 0, 0, 0)
+		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3-ch-4, 0, 0, 0)
 		context.Restore()
+	}
+
+	width += scrollbarWidth
+	columns = int((width - 19) / cw)
+	context.SetSourceRGB(0xb0/255.0, 0xb0/255.0, 0xb0/255.0)
+	context.Rectangle(7, height-24, width-13, ch+2)
+	context.Fill()
+	if state == backend.STATE_IDLE {
+		info := dir.Info()
+		text := strconv.Itoa(info.NumDirs)
+		if info.NumDirs == 1 {
+			text += " directory - "
+		} else {
+			text += " directories - "
+		}
+		text += strconv.Itoa(info.NumFiles)
+		if info.NumFiles == 1 {
+			text += " file - "
+		} else {
+			text += " files - "
+		}
+		sizeStr, _ := formatSize(info.SizeFiles)
+		text += sizeStr
+		if info.SizeFiles == 1 {
+			text += " byte"
+		} else {
+			text += " bytes"
+		}
+		if info.NumSelectedDirs+info.NumSelectedFiles > 0 {
+			text += ", selected: " + strconv.Itoa(info.NumSelectedDirs)
+			if info.NumSelectedDirs == 1 {
+				text += " directory - "
+			} else {
+				text += " directories - "
+			}
+			text += strconv.Itoa(info.NumSelectedFiles)
+			if info.NumSelectedFiles == 1 {
+				text += " file - "
+			} else {
+				text += " files - "
+			}
+			sizeStr, _ := formatSize(info.SizeSelectedFiles)
+			text += sizeStr
+			if info.SizeSelectedFiles == 1 {
+				text += " byte"
+			} else {
+				text += " bytes"
+			}
+		}
+		text = restrictBack(text, columns)
+		context.SetSourceRGB(0, 0, 0)
+		context.MoveTo(10, height-23)
+		layout.SetText(text, -1)
+		pango.CairoShowLayout(context, layout)
 	}
 }

@@ -8,13 +8,13 @@ import (
 
 func formatSize(size int64) (result string, length int) {
 	if size >= 1_000_000_000 {
-		result = fmt.Sprintf("%3d.%03d.%03d.%03d", size/1000000000, (size%1000000000)/1000000, (size%1000000)/1000, size%1000)
+		result = fmt.Sprintf("%d.%03d.%03d.%03d", size/1000000000, (size%1000000000)/1000000, (size%1000000)/1000, size%1000)
 	} else if size >= 1_000_000 {
-		result = fmt.Sprintf("%3d.%03d.%03d", size/1000000, (size%1000000)/1000, size%1000)
+		result = fmt.Sprintf("%d.%03d.%03d", size/1000000, (size%1000000)/1000, size%1000)
 	} else if size >= 1000 {
-		result = fmt.Sprintf("%3d.%03d", size/1000, size%1000)
+		result = fmt.Sprintf("%d.%03d", size/1000, size%1000)
 	} else {
-		result = fmt.Sprintf("%3d", size)
+		result = fmt.Sprintf("%d", size)
 	}
 	length = len(result)
 	return

@@ -26,6 +26,11 @@ const (
 	SORT_TIME
 )
 
+type DirInfo struct {
+	NumDirs, NumFiles, NumSelectedDirs, NumSelectedFiles int
+	SizeFiles, SizeSelectedFiles                         int64
+}
+
 type Directory interface {
 	State() int
 	Path() string
@@ -46,6 +51,7 @@ type Directory interface {
 	Home()
 	Sort() (int, bool)
 	SetSort(crit int, desc bool)
+	Info() (info DirInfo)
 }
 
 type dir struct {
@@ -228,6 +234,26 @@ func (d *dir) SetSort(crit int, desc bool) {
 	}
 }
 
+func (d *dir) Info() (info DirInfo) {
+	for _, f := range d.files {
+		if f.Dir() {
+			info.NumDirs++
+			if f.Marked() {
+				info.NumSelectedDirs++
+			}
+		} else {
+			info.NumFiles++
+			size := f.Size()
+			info.SizeFiles += size
+			if f.Marked() {
+				info.NumSelectedFiles++
+				info.SizeSelectedFiles += size
+			}
+		}
+	}
+	return
+}
+
 func (d *dir) Selection() int {
 	return d.selection
 }
@@ -265,8 +291,10 @@ func (d *dir) SetDispOffset(offset int) {
 }
 
 func (d *dir) ToggleMarkSelected() {
-	d.files[d.selection].toggleMark()
-	guiRefresh()
+	if d.selection < len(d.files) {
+		d.files[d.selection].toggleMark()
+		guiRefresh()
+	}
 }
 
 func (d *dir) ToggleMarkAll() {
