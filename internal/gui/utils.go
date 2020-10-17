@@ -2,9 +2,27 @@ package gui
 
 import (
 	"fmt"
+	"github.com/gotk3/gotk3/cairo"
+	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
+
+var colorRegexp = regexp.MustCompile("^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$")
+
+func setSourceColor(context *cairo.Context, color string) {
+	var c [3]float64
+	cols := colorRegexp.FindStringSubmatch(color)
+	if len(cols) == 4 {
+		for i := 0; i < 3; i++ {
+			if ii, err := strconv.ParseUint(cols[i+1], 16, 8); err == nil {
+				c[i] = float64(ii) / 255
+			}
+		}
+	}
+	context.SetSourceRGB(c[0], c[1], c[2])
+}
 
 func formatSize(size int64) (result string, length int) {
 	if size >= 1_000_000_000 {

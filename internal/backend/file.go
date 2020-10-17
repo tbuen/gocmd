@@ -14,7 +14,7 @@ type File interface {
 	Path() string
 	Name() string
 	Ext() string
-	Color() config.Color
+	Color() string
 	Dir() bool
 	Pipe() bool
 	Socket() bool
@@ -30,7 +30,7 @@ type File interface {
 
 type file struct {
 	path, name, ext         string
-	color                   config.Color
+	color                   string
 	directory, pipe, socket bool
 	link, linkOk            bool
 	linkTarget              string
@@ -109,7 +109,7 @@ func (f *file) Ext() string {
 	return f.ext
 }
 
-func (f *file) Color() config.Color {
+func (f *file) Color() string {
 	return f.color
 }
 

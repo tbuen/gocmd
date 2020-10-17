@@ -5,9 +5,7 @@ import (
 )
 
 func drawScrollbar(context *cairo.Context, width, height float64, total, visible, offset int) {
-	context.SetSourceRGB(0x70/255.0, 0x70/255.0, 0x70/255.0)
-	//context.Rectangle(0, 0, width, height)
-	//context.Fill()
+	setSourceColor(context, "707070")
 	ratio := 1.0
 	start := 0.0
 	if total > visible {

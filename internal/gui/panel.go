@@ -4,14 +4,9 @@ import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/backend"
-	"github.com/tbuen/gocmd/internal/config"
 	"strconv"
 	"unicode/utf8"
 )
-
-func setSourceColor(context *cairo.Context, color config.Color) {
-	context.SetSourceRGB(color[0], color[1], color[2])
-}
 
 func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir backend.Directory) {
 	const scrollbarWidth = 8.0
@@ -19,7 +14,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	ch := 15.0
 	cw := 6.0
 
-	context.SetSourceRGB(0, 0, 0)
+	setSourceColor(context, "000000")
 	context.Rectangle(5, 5, width-8, height-9)
 	context.Stroke()
 	context.Rectangle(6, 6, width-12, height-11)
@@ -38,20 +33,20 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	path := restrictFront(dir.Path(), columns)
 
 	if active {
-		context.SetSourceRGB(0x35/255.0, 0x84/255.0, 0xe4/255.0)
+		setSourceColor(context, "3584E4")
 	} else {
-		context.SetSourceRGB(0x70/255.0, 0x70/255.0, 0x70/255.0)
+		setSourceColor(context, "707070")
 	}
 	context.Rectangle(7, 7, width-13, ch+2)
 	context.Fill()
 
 	switch state {
 	case backend.STATE_IDLE:
-		context.SetSourceRGB(1, 1, 1)
+		setSourceColor(context, "FFFFFF")
 	case backend.STATE_ERROR:
-		context.SetSourceRGB(1, 0, 0)
+		setSourceColor(context, "FF0000")
 	case backend.STATE_RELOAD:
-		context.SetSourceRGB(1, 1, 0)
+		setSourceColor(context, "FFFF00")
 	}
 	context.MoveTo(10, 8)
 	layout.SetText(path, -1)
@@ -141,21 +136,20 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 		for i := 0; i <= lines && offset+i < len(files); i++ {
 			file := files[offset+i]
 			if file.Marked() {
-				context.SetSourceRGB(0xF2/255.0, 0x6B/255.0, 0x3A/255.0)
-				//context.SetSourceRGB(0xFF/255.0, 0xA0/255.0, 0x90/255.0)
+				setSourceColor(context, "F26B3A")
 				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
 				context.Fill()
 			} else if i%2 == 0 {
-				context.SetSourceRGB(1.0, 1.0, 1.0)
+				setSourceColor(context, "FFFFFF")
 				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
 				context.Fill()
 			} else {
-				context.SetSourceRGB(0xF6/255.0, 0xF5/255.0, 0xF4/255.0)
+				setSourceColor(context, "F6F5F4")
 				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
 				context.Fill()
 			}
 			if active && offset+i == selection {
-				context.SetSourceRGB(0, 0, 0)
+				setSourceColor(context, "000000")
 				context.Rectangle(8, 11+(float64(i)+1)*ch, width-14, ch)
 				context.Stroke()
 			}
@@ -232,7 +226,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 
 	width += scrollbarWidth
 	columns = int((width - 19) / cw)
-	context.SetSourceRGB(0xb0/255.0, 0xb0/255.0, 0xb0/255.0)
+	setSourceColor(context, "B0B0B0")
 	context.Rectangle(7, height-24, width-13, ch+2)
 	context.Fill()
 	if state == backend.STATE_IDLE {
@@ -278,7 +272,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			}
 		}
 		text = restrictBack(text, columns)
-		context.SetSourceRGB(0, 0, 0)
+		setSourceColor(context, "000000")
 		context.MoveTo(10, height-23)
 		layout.SetText(text, -1)
 		pango.CairoShowLayout(context, layout)

@@ -15,7 +15,7 @@ var view = viewcfg{true, true, true, true}
 var viewIndex = 0
 
 func drawView(context *cairo.Context, layout *pango.Layout, width, height float64) {
-	context.SetSourceRGB(0xF2/255.0, 0x6B/255.0, 0x3A/255.0)
+	setSourceColor(context, "F26B3A")
 	context.Rectangle(5, 5, width-8, height-9)
 	context.Fill()
 	context.Rectangle(6, 6, width-12, height-11)
@@ -64,7 +64,7 @@ func drawView(context *cairo.Context, layout *pango.Layout, width, height float6
 		text += c + " permissions"
 	}
 
-	context.SetSourceRGB(1, 1, 1)
+	setSourceColor(context, "FFFFFF")
 	context.MoveTo(10, 8)
 	layout.SetMarkup(text, -1)
 	pango.CairoShowLayout(context, layout)

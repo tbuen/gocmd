@@ -5,15 +5,12 @@ import (
 	"github.com/tbuen/gocmd/internal/log"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
-type Color [3]float64
-
 type extcfg struct {
 	descr string
-	color Color
+	color string
 	cmd   string
 	args  []string
 }
@@ -75,16 +72,11 @@ func Read() {
 	edit.args = appcfg.Edit.Args
 
 	extcfgs = make(map[string]extcfg)
-	re := regexp.MustCompile("^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$")
+	re := regexp.MustCompile("^#[0-9a-fA-F]{6}$")
 	for i, a := range appcfg.Apps {
-		c := Color{}
-		cols := re.FindStringSubmatch(a.Color)
-		if len(cols) == 4 {
-			for i := 0; i < 3; i++ {
-				if ii, err := strconv.ParseUint(cols[i+1], 16, 8); err == nil {
-					c[i] = float64(ii) / 255
-				}
-			}
+		c := "000000"
+		if re.MatchString(a.Color) {
+			c = a.Color[1:]
 		} else {
 			log.Println(log.GLOBAL, "Invalid color:", a.Color, "("+filenameApps+")")
 		}
@@ -92,8 +84,7 @@ func Read() {
 			extcfgs[strings.ToUpper(e)] = extcfg{a.Descr, c, a.Cmd, a.Args}
 		}
 		log.Println(log.CONFIG, i, "Descr:", a.Descr)
-		log.Println(log.CONFIG, i, "Color:", a.Color)
-		log.Println(log.CONFIG, i, "Color:", c)
+		log.Println(log.CONFIG, i, "Color: #"+c)
 		log.Println(log.CONFIG, i, "Exts: ", a.Exts)
 		log.Println(log.CONFIG, i, "Cmd:  ", a.Cmd)
 		log.Println(log.CONFIG, i, "Args: ", a.Args)
@@ -102,11 +93,12 @@ func Read() {
 	log.Println(log.CONFIG, "Extensions:", extcfgs)
 }
 
-func FileColor(ext string) (c Color) {
+func FileColor(ext string) string {
+	c := "000000"
 	if e, ok := extcfgs[strings.ToUpper(ext)]; ok {
 		c = e.color
 	}
-	return
+	return c
 }
 
 func FileCmd(ext string) (c string, a []string) {
