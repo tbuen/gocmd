@@ -1,7 +1,7 @@
 # Maintainer: Thomas Büning <buening at online dot de>
 # Contributor:
 pkgname=gocmd
-pkgver=0.3.0
+pkgver=0.3.1
 pkgrel=1
 epoch=
 pkgdesc="twin panel file manager written in go with gtk3 interface"

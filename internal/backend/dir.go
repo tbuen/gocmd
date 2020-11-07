@@ -337,6 +337,10 @@ func reloadRoutine(d *dir) {
 		if i == CMD_RELOAD {
 			log.Println(log.DIR, "go routine for path", d.path, "received CMD_RELOAD")
 			success := false
+			var prevSelectedFile string
+			if d.selectDir == "" && d.selection < len(d.files) {
+				prevSelectedFile = d.files[d.selection].Name()
+			}
 			if dir, err := os.Open(d.path); err == nil {
 				if names, err := dir.Readdirnames(0); err == nil {
 					d.files = d.files[0:0]
@@ -354,7 +358,7 @@ func reloadRoutine(d *dir) {
 					}
 					d.sort()
 					for i, f := range d.files {
-						if f.Name() == d.selectDir {
+						if name := f.Name(); name == d.selectDir || name == prevSelectedFile {
 							d.selection = i
 							d.selectDir = ""
 							break
