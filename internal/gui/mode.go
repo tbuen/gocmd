@@ -73,5 +73,9 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 	case gdk.KEY_v:
 		mode = MODE_VIEW
 		Refresh()
+	case gdk.KEY_t:
+		backend.CreateTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_T:
+		backend.DuplicateTab(backend.PANEL_ACTIVE)
 	}
 }

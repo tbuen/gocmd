@@ -2,4 +2,4 @@
 
 package log
 
-const modules = GLOBAL | MAIN | CONFIG | GUI | DIR
+const modules = GLOBAL | MAIN | CONFIG | GUI | TAB | DIR

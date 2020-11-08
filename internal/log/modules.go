@@ -5,5 +5,6 @@ const (
 	MAIN
 	CONFIG
 	GUI
+	TAB
 	DIR
 )
