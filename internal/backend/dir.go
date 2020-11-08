@@ -13,6 +13,7 @@ const (
 	STATE_IDLE = iota
 	STATE_RELOAD
 	STATE_ERROR
+	STATE_DEAD
 )
 
 const (
@@ -36,6 +37,7 @@ type Directory interface {
 	Path() string
 	Files() []File
 	Reload()
+	Destroy()
 	Selection() int
 	SetSelectionRelative(n int)
 	SetSelectionAbsolute(n int)
@@ -105,7 +107,7 @@ func (d *dir) Files() []File {
 
 func (d *dir) Reload() {
 	log.Println(log.DIR, "Reload:", d.path)
-	if d.state != STATE_RELOAD {
+	if d.state == STATE_IDLE || d.state == STATE_ERROR {
 		d.state = STATE_RELOAD
 		if d.ch == nil {
 			log.Println(log.DIR, "create go routine...")
@@ -114,12 +116,20 @@ func (d *dir) Reload() {
 		}
 		d.ch <- CMD_RELOAD
 		guiRefresh()
-		//close(d.ch)
+	}
+}
+
+func (d *dir) Destroy() {
+	if d.state != STATE_DEAD {
+		d.state = STATE_DEAD
+		if d.ch != nil {
+			close(d.ch)
+		}
 	}
 }
 
 func (d *dir) GoUp() {
-	if d.state != STATE_RELOAD {
+	if d.state == STATE_IDLE || d.state == STATE_ERROR {
 		if d.path != string(filepath.Separator) {
 			d.selectDir = filepath.Base(d.path)
 			d.path = filepath.Dir(d.path)
@@ -197,7 +207,7 @@ func (d *dir) Edit() {
 }
 
 func (d *dir) Root() {
-	if d.state != STATE_RELOAD {
+	if d.state == STATE_IDLE || d.state == STATE_ERROR {
 		if d.path != string(filepath.Separator) {
 			d.path = string(filepath.Separator)
 			d.dispOffset = 0
@@ -208,7 +218,7 @@ func (d *dir) Root() {
 }
 
 func (d *dir) Home() {
-	if d.state != STATE_RELOAD {
+	if d.state == STATE_IDLE || d.state == STATE_ERROR {
 		home, err := os.UserHomeDir()
 		if err == nil {
 			if d.path != home {
@@ -298,10 +308,12 @@ func (d *dir) ToggleMarkSelected() {
 }
 
 func (d *dir) ToggleMarkAll() {
-	for _, f := range d.files {
-		f.toggleMark()
+	if len(d.files) > 0 {
+		for _, f := range d.files {
+			f.toggleMark()
+		}
+		guiRefresh()
 	}
-	guiRefresh()
 }
 
 func (d *dir) sort() {
@@ -391,12 +403,16 @@ func Receive() {
 	select {
 	case m := <-ch:
 		log.Println(log.DIR, "received response for path", m.d.Path())
-		if m.success {
-			m.d.state = STATE_IDLE
+		if m.d.state == STATE_RELOAD {
+			if m.success {
+				m.d.state = STATE_IDLE
+			} else {
+				m.d.state = STATE_ERROR
+			}
+			guiRefresh()
 		} else {
-			m.d.state = STATE_ERROR
+			log.Println(log.DIR, "directory already dead")
 		}
-		guiRefresh()
 	case <-wait:
 	}
 }

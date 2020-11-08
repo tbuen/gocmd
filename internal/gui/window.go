@@ -51,6 +51,7 @@ func onDelete(win *gtk.ApplicationWindow, ev *gdk.Event) bool {
 }
 
 func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
+	log.Println(log.GUI, "draw")
 	width := float64(da.GetAllocatedWidth())
 	height := float64(da.GetAllocatedHeight())
 	offsetTop := 0.0

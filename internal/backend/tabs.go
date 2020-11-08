@@ -59,6 +59,58 @@ func DuplicateTab(panel int) {
 	}
 }
 
+func DeleteTab(panel int) {
+	idx := panelIdx(panel)
+	tabs := &panels[idx].tabs
+	active := &panels[idx].active
+	d := (*tabs)[*active]
+	log.Println(log.TAB, "deleting tab, before:", len(*tabs))
+	*tabs = append((*tabs)[:*active], (*tabs)[*active+1:]...)
+	if len(*tabs) == 0 {
+		CreateTab(panel)
+	}
+	if *active >= len(*tabs) {
+		*active = len(*tabs) - 1
+	}
+	log.Println(log.TAB, "deleting tab, after:", len(*tabs))
+	d.Destroy()
+	guiRefresh()
+}
+
+func FirstTab(panel int) {
+	idx := panelIdx(panel)
+	if panels[idx].active != 0 {
+		panels[idx].active = 0
+		guiRefresh()
+	}
+}
+
+func PrevTab(panel int) {
+	idx := panelIdx(panel)
+	if panels[idx].active > 0 {
+		panels[idx].active--
+		guiRefresh()
+	}
+}
+
+func NextTab(panel int) {
+	idx := panelIdx(panel)
+	num := len(panels[idx].tabs)
+	if panels[idx].active < num-1 {
+		panels[idx].active++
+		guiRefresh()
+	}
+}
+
+func LastTab(panel int) {
+	idx := panelIdx(panel)
+	num := len(panels[idx].tabs)
+	if panels[idx].active != num-1 {
+		panels[idx].active = num - 1
+		guiRefresh()
+	}
+}
+
 func insertTab(panel int, d Directory) {
 	idx := panelIdx(panel)
 	tabs := &panels[idx].tabs
@@ -75,7 +127,6 @@ func insertTab(panel int, d Directory) {
 	}
 	log.Println(log.TAB, "creating tab, after:", len(*tabs))
 	d.Reload()
-	guiRefresh()
 }
 
 func panelIdx(panel int) (idx int) {

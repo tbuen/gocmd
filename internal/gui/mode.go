@@ -77,5 +77,15 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 		backend.CreateTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_T:
 		backend.DuplicateTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_w:
+		backend.DeleteTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_h, gdk.KEY_Left:
+		backend.PrevTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_H: // TODO Shift+Left
+		backend.FirstTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_l, gdk.KEY_Right:
+		backend.NextTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_L: // TODO Shift+Right
+		backend.LastTab(backend.PANEL_ACTIVE)
 	}
 }
