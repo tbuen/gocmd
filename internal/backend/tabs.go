@@ -46,6 +46,15 @@ func GetDirectory(panel int) (d Directory) {
 	return
 }
 
+func Tabs(panel int) (titles []string, active int) {
+	idx := panelIdx(panel)
+	for _, d := range panels[idx].tabs {
+		titles = append(titles, d.Path())
+	}
+	active = panels[idx].active
+	return
+}
+
 func CreateTab(panel int) {
 	insertTab(panel, newDirectory(""))
 }

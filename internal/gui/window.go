@@ -84,11 +84,23 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 
 	context.Save()
 	context.Translate(0, offsetTop)
-	drawPanel(context, layout, width/2, height-offsetTop, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
+	tabs, active := backend.Tabs(backend.PANEL_LEFT)
+	drawTabs(context, layout, width/2, 30, tabs, active)
+	context.Restore()
+
+	context.Save()
+	context.Translate(0, offsetTop+30)
+	drawPanel(context, layout, width/2, height-offsetTop-30, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
 	context.Restore()
 
 	context.Save()
 	context.Translate(width/2, offsetTop)
-	drawPanel(context, layout, width/2, height-offsetTop, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
+	tabs, active = backend.Tabs(backend.PANEL_RIGHT)
+	drawTabs(context, layout, width/2, 30, tabs, active)
+	context.Restore()
+
+	context.Save()
+	context.Translate(width/2, offsetTop+30)
+	drawPanel(context, layout, width/2, height-offsetTop-30, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
 	context.Restore()
 }
