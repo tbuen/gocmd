@@ -11,7 +11,7 @@ else
 endif
 
 .PHONY: gocmd
-gocmd:
+gocmd: fmt
 	go build -o $(BINARY) $(FLAGS) ./cmd/...
 
 .PHONY: fmt

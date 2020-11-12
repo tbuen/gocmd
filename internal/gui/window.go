@@ -56,6 +56,8 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	height := float64(da.GetAllocatedHeight())
 	offsetTop := 0.0
 
+	var x, y, w, h float64
+
 	context.SetAntialias(cairo.ANTIALIAS_NONE)
 	layout := pango.CairoCreateLayout(context)
 	//layout.SetFontDescription(pango.FontDescriptionFromString("DejaVu Sans Mono 10"));
@@ -82,25 +84,39 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 
 	layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro Semibold 8"))
 
+	heightTabs := 25.0
+
 	context.Save()
-	context.Translate(0, offsetTop)
+	x, y, w, h = 5, offsetTop+5, width/2-8, heightTabs
+	context.Translate(x, y)
+	context.Rectangle(-1, -1, w+1, h+1)
+	context.Clip()
 	tabs, active := backend.Tabs(backend.PANEL_LEFT)
-	drawTabs(context, layout, width/2, 30, tabs, active)
+	sx1, sx2 := drawTabs(context, layout, w, h, tabs, active)
 	context.Restore()
 
 	context.Save()
-	context.Translate(0, offsetTop+30)
-	drawPanel(context, layout, width/2, height-offsetTop-30, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
+	x, y, w, h = 5, offsetTop+heightTabs+5, width/2-8, height-offsetTop-heightTabs-10
+	context.Translate(x, y)
+	context.Rectangle(-1, -1, w+1, h+1)
+	context.Clip()
+	drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
 	context.Restore()
 
 	context.Save()
-	context.Translate(width/2, offsetTop)
+	x, y, w, h = width/2+5, offsetTop+5, width/2-8, heightTabs
+	context.Translate(x, y)
+	context.Rectangle(-1, -1, w+1, h+1)
+	context.Clip()
 	tabs, active = backend.Tabs(backend.PANEL_RIGHT)
-	drawTabs(context, layout, width/2, 30, tabs, active)
+	sx1, sx2 = drawTabs(context, layout, w, h, tabs, active)
 	context.Restore()
 
 	context.Save()
-	context.Translate(width/2, offsetTop+30)
-	drawPanel(context, layout, width/2, height-offsetTop-30, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
+	x, y, w, h = width/2+5, offsetTop+heightTabs+5, width/2-8, height-offsetTop-heightTabs-10
+	context.Translate(x, y)
+	context.Rectangle(-1, -1, w+1, h+1)
+	context.Clip()
+	drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
 	context.Restore()
 }

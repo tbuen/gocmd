@@ -8,17 +8,19 @@ import (
 	"unicode/utf8"
 )
 
-func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float64, active bool, dir backend.Directory) {
+func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, dir backend.Directory) {
 	const scrollbarWidth = 8.0
 
 	ch := 15.0
 	cw := 6.0
 
 	setSourceColor(context, "000000")
-	context.Rectangle(5, 5, width-8, height-9)
+	context.Rectangle(0, 0, width, height)
 	context.Stroke()
-	context.Rectangle(6, 6, width-12, height-11)
-	context.Clip()
+	setSourceColor(context, "707070")
+	context.MoveTo(sx1, 0)
+	context.LineTo(sx2, 0)
+	context.Stroke()
 
 	if dir == nil {
 		return
@@ -26,8 +28,8 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 
 	//layout.SetText(".");
 	//layout.GetPixelSize(cw, ch);
-	lines := int((height - 19 - 17 - ch) / ch)
-	columns := int((width - 19) / cw)
+	lines := int((height - ch - 27) / ch)
+	columns := int((width - 10) / cw)
 
 	state := dir.State()
 	path := restrictFront(dir.Path(), columns)
@@ -37,7 +39,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	} else {
 		setSourceColor(context, "707070")
 	}
-	context.Rectangle(7, 7, width-13, ch+2)
+	context.Rectangle(2, 2, width-5, ch+2)
 	context.Fill()
 
 	switch state {
@@ -48,13 +50,13 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 	case backend.STATE_RELOAD:
 		setSourceColor(context, "FFFF00")
 	}
-	context.MoveTo(10, 8)
+	context.MoveTo(5, 3)
 	layout.SetText(path, -1)
 	pango.CairoShowLayout(context, layout)
 
 	if state == backend.STATE_IDLE {
 		width -= scrollbarWidth
-		columns = int((width - 19) / cw)
+		columns = int((width - 10) / cw)
 
 		files := dir.Files()
 
@@ -137,24 +139,24 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			file := files[offset+i]
 			if file.Marked() {
 				setSourceColor(context, "F26B3A")
-				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
+				context.Rectangle(2, 6+(float64(i)+1)*ch, width-5, ch)
 				context.Fill()
 			} else if i%2 == 0 {
 				setSourceColor(context, "FFFFFF")
-				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
+				context.Rectangle(2, 6+(float64(i)+1)*ch, width-5, ch)
 				context.Fill()
 			} else {
 				setSourceColor(context, "F6F5F4")
-				context.Rectangle(7, 11+(float64(i)+1)*ch, width-13, ch)
+				context.Rectangle(2, 6+(float64(i)+1)*ch, width-5, ch)
 				context.Fill()
 			}
 			if active && offset+i == selection {
 				setSourceColor(context, "000000")
-				context.Rectangle(8, 11+(float64(i)+1)*ch, width-14, ch)
+				context.Rectangle(3, 6+(float64(i)+1)*ch, width-6, ch)
 				context.Stroke()
 			}
 			setSourceColor(context, file.Color())
-			context.MoveTo(10, 10+(float64(i)+1)*ch)
+			context.MoveTo(5, 5+(float64(i)+1)*ch)
 
 			var line string
 			link, linkOk, linkTarget := file.Link()
@@ -213,21 +215,21 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 			pango.CairoShowLayout(context, layout)
 		}
 		context.Save()
-		context.Translate(width+7-13, 7+ch+2+1)
-		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3-ch-4, len(files), lines, offset)
+		context.Translate(width-3, ch+5)
+		drawScrollbar(context, scrollbarWidth, height-ch-ch-11, len(files), lines, offset)
 		context.Restore()
 	} else {
 		width -= scrollbarWidth
 		context.Save()
-		context.Translate(width+7-13, 7+ch+2+1)
-		drawScrollbar(context, scrollbarWidth, height-11-ch-2-3-ch-4, 0, 0, 0)
+		context.Translate(width-3, ch+5)
+		drawScrollbar(context, scrollbarWidth, height-ch-ch-11, 0, 0, 0)
 		context.Restore()
 	}
 
 	width += scrollbarWidth
-	columns = int((width - 19) / cw)
+	columns = int((width - 10) / cw)
 	setSourceColor(context, "B0B0B0")
-	context.Rectangle(7, height-24, width-13, ch+2)
+	context.Rectangle(2, height-20, width-5, ch+2)
 	context.Fill()
 	if state == backend.STATE_IDLE {
 		info := dir.Info()
@@ -273,7 +275,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height float
 		}
 		text = restrictBack(text, columns)
 		setSourceColor(context, "000000")
-		context.MoveTo(10, height-23)
+		context.MoveTo(5, height-19)
 		layout.SetText(text, -1)
 		pango.CairoShowLayout(context, layout)
 	}

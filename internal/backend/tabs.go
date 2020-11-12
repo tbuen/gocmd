@@ -2,6 +2,7 @@ package backend
 
 import (
 	"github.com/tbuen/gocmd/internal/log"
+	"path/filepath"
 )
 
 const (
@@ -49,7 +50,7 @@ func GetDirectory(panel int) (d Directory) {
 func Tabs(panel int) (titles []string, active int) {
 	idx := panelIdx(panel)
 	for _, d := range panels[idx].tabs {
-		titles = append(titles, d.Path())
+		titles = append(titles, filepath.Base(d.Path()))
 	}
 	active = panels[idx].active
 	return
