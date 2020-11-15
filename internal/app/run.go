@@ -4,7 +4,6 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/tbuen/gocmd/internal/backend"
-	"github.com/tbuen/gocmd/internal/config"
 	"github.com/tbuen/gocmd/internal/gui"
 	"github.com/tbuen/gocmd/internal/log"
 	"os"
@@ -36,7 +35,6 @@ func onStartup(application *gtk.Application) {
 	if err != nil {
 		log.Fatalln("Could not register idle function:", err)
 	}
-	config.Read()
 	backend.Load()
 }
 
@@ -52,6 +50,7 @@ func onActivate(application *gtk.Application) {
 
 func onShutdown(application *gtk.Application) {
 	log.Println(log.MAIN, "shutdown")
+	backend.Save()
 	runIdle = false
 }
 

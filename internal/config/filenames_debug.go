@@ -7,7 +7,9 @@ import (
 )
 
 var filenameApps string
+var filenameTabs string
 
 func init() {
-	filenameApps = "." + string(filepath.Separator) + "configs" + string(filepath.Separator) + "apps.xml"
+	filenameApps = "." + string(filepath.Separator) + "config" + string(filepath.Separator) + "apps.xml"
+	filenameTabs = "." + string(filepath.Separator) + "cache" + string(filepath.Separator) + "tabs.xml"
 }

@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/tbuen/gocmd/internal/config"
 	"github.com/tbuen/gocmd/internal/log"
 	"path/filepath"
 )
@@ -22,8 +23,20 @@ var (
 )
 
 func Load() {
+	config.ReadApps()
 	CreateTab(PANEL_LEFT)
 	CreateTab(PANEL_RIGHT)
+}
+
+func Save() {
+	tabcfg := &config.TabConfig{}
+	for idx := PANEL_LEFT; idx <= PANEL_RIGHT; idx++ {
+		for _, d := range panels[idx].tabs {
+			tabcfg.Panels[idx].Tabs = append(tabcfg.Panels[idx].Tabs, config.Tab{d.Path()})
+		}
+		tabcfg.Panels[idx].Active = panels[idx].active
+	}
+	config.WriteTabs(tabcfg)
 }
 
 func ActivePanel() int {

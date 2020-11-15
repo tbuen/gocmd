@@ -24,7 +24,7 @@ var extcfgs map[string]extcfg
 var view progcfg
 var edit progcfg
 
-func Read() {
+func ReadApps() {
 	type App struct {
 		Descr string   `xml:"descr,attr"`
 		Color string   `xml:"color,attr"`
