@@ -16,7 +16,37 @@ type Panel struct {
 }
 type TabConfig struct {
 	XMLName xml.Name `xml:"tabs"`
-	Panels  [2]Panel `xml:"panel"`
+	Panels  []Panel  `xml:"panel"`
+}
+
+func ReadTabs() (tabcfg *TabConfig, err error) {
+	file, err := os.Open(filenameTabs)
+	if err != nil {
+		log.Println(log.CONFIG, "Could not open", filenameTabs)
+		return
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		log.Println(log.CONFIG, "Could not stat", filenameTabs)
+		return
+	}
+	buffer := make([]byte, fileInfo.Size())
+	_, err = file.ReadAt(buffer, 0)
+	if err != nil {
+		log.Println(log.CONFIG, "Could not read", filenameTabs)
+		return
+	}
+
+	tabcfg = new(TabConfig)
+	err = xml.Unmarshal(buffer, tabcfg)
+	if err != nil {
+		log.Println(log.CONFIG, "Could not parse", filenameTabs, err)
+		tabcfg = nil
+		return
+	}
+	return
 }
 
 func WriteTabs(tabcfg *TabConfig) {

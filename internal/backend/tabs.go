@@ -24,17 +24,35 @@ var (
 
 func Load() {
 	config.ReadApps()
-	CreateTab(PANEL_LEFT)
-	CreateTab(PANEL_RIGHT)
+	tabcfg, err := config.ReadTabs()
+	if err != nil {
+		CreateTab(PANEL_LEFT)
+		CreateTab(PANEL_RIGHT)
+		return
+	}
+	for idx := PANEL_LEFT; idx <= PANEL_RIGHT; idx++ {
+		for _, tab := range tabcfg.Panels[idx].Tabs {
+			dir := newDirectory(tab.Path)
+			//dir.SetSort(org.Sort())
+			insertTab(idx, dir)
+		}
+		if tabcfg.Panels[idx].Active < len(panels[idx].tabs) {
+			panels[idx].active = tabcfg.Panels[idx].Active
+		} else {
+			panels[idx].active = 0 // TODO remove
+		}
+	}
 }
 
 func Save() {
 	tabcfg := &config.TabConfig{}
 	for idx := PANEL_LEFT; idx <= PANEL_RIGHT; idx++ {
+		panel := config.Panel{}
 		for _, d := range panels[idx].tabs {
-			tabcfg.Panels[idx].Tabs = append(tabcfg.Panels[idx].Tabs, config.Tab{d.Path()})
+			panel.Tabs = append(panel.Tabs, config.Tab{d.Path()})
 		}
-		tabcfg.Panels[idx].Active = panels[idx].active
+		panel.Active = panels[idx].active
+		tabcfg.Panels = append(tabcfg.Panels, panel)
 	}
 	config.WriteTabs(tabcfg)
 }
