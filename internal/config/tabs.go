@@ -7,15 +7,32 @@ import (
 	"path/filepath"
 )
 
+const (
+	SORT_BY_NAME = iota
+	SORT_BY_EXT
+	SORT_BY_SIZE
+	SORT_BY_TIME
+)
+
+const (
+	SORT_ASCENDING = iota
+	SORT_DESCENDING
+)
+
 type Tab struct {
-	Path string `xml:"path,attr"`
+	Path      string `xml:"path,attr"`
+	SortKey   int    `xml:"sortkey,attr"`
+	SortOrder int    `xml:"sortorder,attr"`
 }
+
 type Panel struct {
 	Active int   `xml:"active,attr"`
 	Tabs   []Tab `xml:"tab"`
 }
+
 type TabConfig struct {
 	XMLName xml.Name `xml:"tabs"`
+	Active  int      `xml:"active,attr"`
 	Panels  []Panel  `xml:"panel"`
 }
 
@@ -50,7 +67,7 @@ func ReadTabs() (tabcfg *TabConfig, err error) {
 }
 
 func WriteTabs(tabcfg *TabConfig) {
-	output, err := xml.MarshalIndent(tabcfg, "", "   ")
+	output, err := xml.MarshalIndent(tabcfg, "", "\t")
 	if err != nil {
 		log.Println(log.CONFIG, "Error creating tabs xml", err)
 		return

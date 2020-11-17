@@ -76,7 +76,7 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 	case gdk.KEY_t:
 		backend.CreateTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_T:
-		backend.DuplicateTab(backend.PANEL_ACTIVE)
+		backend.CloneTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_w:
 		backend.DeleteTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_h, gdk.KEY_Left:

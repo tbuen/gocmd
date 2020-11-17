@@ -10,21 +10,16 @@ import (
 )
 
 const (
-	STATE_IDLE = iota
+	STATE_INIT = iota
+	STATE_IDLE
 	STATE_RELOAD
 	STATE_ERROR
 	STATE_DEAD
 )
 
 const (
-	CMD_RELOAD = 1
-)
-
-const (
-	SORT_NAME = iota
-	SORT_EXT
-	SORT_SIZE
-	SORT_TIME
+	_ = iota
+	CMD_RELOAD
 )
 
 type DirInfo struct {
@@ -32,37 +27,13 @@ type DirInfo struct {
 	SizeFiles, SizeSelectedFiles                         int64
 }
 
-type Directory interface {
-	State() int
-	Path() string
-	Files() []File
-	Reload()
-	Destroy()
-	Selection() int
-	SetSelectionRelative(n int)
-	SetSelectionAbsolute(n int)
-	DispOffset() int
-	SetDispOffset(offset int)
-	ToggleMarkSelected()
-	ToggleMarkAll()
-	GoUp()
-	Enter()
-	View()
-	Edit()
-	Root()
-	Home()
-	Sort() (int, bool)
-	SetSort(crit int, desc bool)
-	Info() (info DirInfo)
-}
-
-type dir struct {
+type Directory struct {
 	state          int
 	path           string
 	ch             chan int
 	files          []File
-	sortCrit       int
-	sortDesc       bool
+	sortKey        int
+	sortOrder      int
 	selection      int
 	dispOffset     int
 	dispOffsetHist map[string]int
@@ -71,85 +42,84 @@ type dir struct {
 
 type msg struct {
 	success bool
-	d       *dir
+	dir     *Directory
 }
 
-var ch = make(chan msg, 1)
+var channel = make(chan msg, 1)
 
-func newDirectory(path string) Directory {
-	d := dir{}
-	d.state = STATE_ERROR
-	d.dispOffsetHist = make(map[string]int)
+func newDirectory(path string) (dir *Directory) {
+	dir = new(Directory)
+	dir.dispOffsetHist = make(map[string]int)
 	if path == "" {
 		home, err := os.UserHomeDir()
 		if err == nil {
-			d.path = home
+			dir.path = home
 		} else {
-			d.path = string(filepath.Separator)
+			dir.path = string(filepath.Separator)
 		}
 	} else {
-		d.path = path
+		dir.path = path
 	}
-	return &d
+	return
 }
 
-func (d *dir) State() int {
-	return d.state
+func (dir *Directory) State() int {
+	return dir.state
 }
 
-func (d *dir) Path() string {
-	return d.path
+func (dir *Directory) Path() string {
+	return dir.path
 }
 
-func (d *dir) Files() []File {
-	return d.files
+func (dir *Directory) Files() []File {
+	return dir.files
 }
 
-func (d *dir) Reload() {
-	log.Println(log.DIR, "Reload:", d.path)
-	if d.state == STATE_IDLE || d.state == STATE_ERROR {
-		d.state = STATE_RELOAD
-		if d.ch == nil {
+func (dir *Directory) Reload() {
+	log.Println(log.DIR, "Reload:", dir.path)
+	if dir.state == STATE_INIT || dir.state == STATE_IDLE || dir.state == STATE_ERROR {
+		dir.state = STATE_RELOAD
+		if dir.ch == nil {
 			log.Println(log.DIR, "create go routine...")
-			d.ch = make(chan int, 1)
-			go reloadRoutine(d)
+			dir.ch = make(chan int, 1)
+			go reloadRoutine(dir)
 		}
-		d.ch <- CMD_RELOAD
+		dir.ch <- CMD_RELOAD
 		guiRefresh()
 	}
 }
 
-func (d *dir) Destroy() {
-	if d.state != STATE_DEAD {
-		d.state = STATE_DEAD
-		if d.ch != nil {
-			close(d.ch)
+func (dir *Directory) Destroy() {
+	if dir.state != STATE_DEAD {
+		dir.state = STATE_DEAD
+		if dir.ch != nil {
+			close(dir.ch)
 		}
 	}
 }
 
-func (d *dir) GoUp() {
-	if d.state == STATE_IDLE || d.state == STATE_ERROR {
-		if d.path != string(filepath.Separator) {
-			d.selectDir = filepath.Base(d.path)
-			d.path = filepath.Dir(d.path)
-			d.dispOffset = 0
-			d.selection = 0
-			d.Reload()
+func (dir *Directory) GoUp() {
+	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
+		if dir.path != string(filepath.Separator) {
+			dir.selectDir = filepath.Base(dir.path)
+			dir.path = filepath.Dir(dir.path)
+			dir.dispOffset = 0
+			dir.selection = 0
+			dir.Reload()
 		}
 	}
 }
 
-func (d *dir) Enter() {
-	if d.state == STATE_IDLE {
-		if d.selection < len(d.files) {
-			file := d.files[d.selection]
+func (dir *Directory) Enter() {
+	if dir.state == STATE_IDLE {
+		if dir.selection < len(dir.files) {
+			file := dir.files[dir.selection]
 			if file.Dir() {
-				d.dispOffsetHist[d.path] = d.dispOffset
-				d.path = file.Path()
-				d.dispOffset = 0
-				d.selection = 0
-				d.Reload()
+				dir.dispOffsetHist[dir.path] = dir.dispOffset
+				dir.path = file.Path()
+				dir.dispOffset = 0
+				dir.selection = 0
+				dir.Reload()
 			} else {
 				cmd, args := config.FileCmd(file.Ext())
 				if cmd != "" {
@@ -166,10 +136,10 @@ func (d *dir) Enter() {
 	}
 }
 
-func (d *dir) View() {
-	if d.state == STATE_IDLE {
-		if d.selection < len(d.files) {
-			file := d.files[d.selection]
+func (dir *Directory) View() {
+	if dir.state == STATE_IDLE {
+		if dir.selection < len(dir.files) {
+			file := dir.files[dir.selection]
 			if !file.Dir() {
 				cmd, args := config.View()
 				if cmd != "" {
@@ -186,10 +156,10 @@ func (d *dir) View() {
 	}
 }
 
-func (d *dir) Edit() {
-	if d.state == STATE_IDLE {
-		if d.selection < len(d.files) {
-			file := d.files[d.selection]
+func (dir *Directory) Edit() {
+	if dir.state == STATE_IDLE {
+		if dir.selection < len(dir.files) {
+			file := dir.files[dir.selection]
 			if !file.Dir() {
 				cmd, args := config.Edit()
 				if cmd != "" {
@@ -206,7 +176,7 @@ func (d *dir) Edit() {
 	}
 }
 
-func (d *dir) Root() {
+func (d *Directory) Root() {
 	if d.state == STATE_IDLE || d.state == STATE_ERROR {
 		if d.path != string(filepath.Separator) {
 			d.path = string(filepath.Separator)
@@ -217,7 +187,7 @@ func (d *dir) Root() {
 	}
 }
 
-func (d *dir) Home() {
+func (d *Directory) Home() {
 	if d.state == STATE_IDLE || d.state == STATE_ERROR {
 		home, err := os.UserHomeDir()
 		if err == nil {
@@ -231,21 +201,22 @@ func (d *dir) Home() {
 	}
 }
 
-func (d *dir) Sort() (int, bool) {
-	return d.sortCrit, d.sortDesc
+func (dir *Directory) SortKey() (sortKey, sortOrder int) {
+	sortKey, sortOrder = dir.sortKey, dir.sortOrder
+	return
 }
 
-func (d *dir) SetSort(crit int, desc bool) {
-	if d.sortCrit != crit || d.sortDesc != desc {
-		d.sortCrit = crit
-		d.sortDesc = desc
-		d.sort()
+func (dir *Directory) SetSortKey(sortKey, sortOrder int) {
+	if dir.sortKey != sortKey || dir.sortOrder != sortOrder {
+		dir.sortKey = sortKey
+		dir.sortOrder = sortOrder
+		dir.sort()
 		guiRefresh()
 	}
 }
 
-func (d *dir) Info() (info DirInfo) {
-	for _, f := range d.files {
+func (dir *Directory) Info() (info DirInfo) {
+	for _, f := range dir.files {
 		if f.Dir() {
 			info.NumDirs++
 			if f.Marked() {
@@ -264,150 +235,150 @@ func (d *dir) Info() (info DirInfo) {
 	return
 }
 
-func (d *dir) Selection() int {
-	return d.selection
+func (dir *Directory) Selection() int {
+	return dir.selection
 }
 
-func (d *dir) SetSelectionRelative(n int) {
-	if d.state == STATE_IDLE {
+func (dir *Directory) SetSelectionRelative(n int) {
+	if dir.state == STATE_IDLE {
 		if n > 0 {
-			d.SetSelectionAbsolute(d.selection + n)
+			dir.SetSelectionAbsolute(dir.selection + n)
 		} else {
 			n = -n
-			if n > d.selection {
-				n = d.selection
+			if n > dir.selection {
+				n = dir.selection
 			}
-			d.SetSelectionAbsolute(d.selection - n)
+			dir.SetSelectionAbsolute(dir.selection - n)
 		}
 	}
 }
 
-func (d *dir) SetSelectionAbsolute(n int) {
-	if d.state == STATE_IDLE {
-		d.selection = n
-		if d.selection < 0 || d.selection >= len(d.files) {
-			d.selection = len(d.files) - 1
+func (dir *Directory) SetSelectionAbsolute(n int) {
+	if dir.state == STATE_IDLE {
+		dir.selection = n
+		if dir.selection < 0 || dir.selection >= len(dir.files) {
+			dir.selection = len(dir.files) - 1
 		}
 		guiRefresh()
 	}
 }
 
-func (d *dir) DispOffset() int {
-	return d.dispOffset
+func (dir *Directory) DispOffset() int {
+	return dir.dispOffset
 }
 
-func (d *dir) SetDispOffset(offset int) {
-	d.dispOffset = offset
+func (dir *Directory) SetDispOffset(offset int) {
+	dir.dispOffset = offset
 }
 
-func (d *dir) ToggleMarkSelected() {
-	if d.selection < len(d.files) {
-		d.files[d.selection].toggleMark()
+func (dir *Directory) ToggleMarkSelected() {
+	if dir.selection < len(dir.files) {
+		dir.files[dir.selection].toggleMark()
 		guiRefresh()
 	}
 }
 
-func (d *dir) ToggleMarkAll() {
-	if len(d.files) > 0 {
-		for _, f := range d.files {
+func (dir *Directory) ToggleMarkAll() {
+	if len(dir.files) > 0 {
+		for _, f := range dir.files {
 			f.toggleMark()
 		}
 		guiRefresh()
 	}
 }
 
-func (d *dir) sort() {
-	if d.sortCrit == SORT_NAME {
-		if d.sortDesc {
-			orderedBy(dirFirst, nameDesc).sort(d.files)
+func (dir *Directory) sort() {
+	if dir.sortKey == config.SORT_BY_NAME {
+		if dir.sortOrder == config.SORT_ASCENDING {
+			orderedBy(dirFirst, nameAsc).sort(dir.files)
 		} else {
-			orderedBy(dirFirst, nameAsc).sort(d.files)
+			orderedBy(dirFirst, nameDesc).sort(dir.files)
 		}
-	} else if d.sortCrit == SORT_EXT {
-		if d.sortDesc {
-			orderedBy(dirFirst, extDesc, nameDesc).sort(d.files)
+	} else if dir.sortKey == config.SORT_BY_EXT {
+		if dir.sortOrder == config.SORT_ASCENDING {
+			orderedBy(dirFirst, extAsc, nameAsc).sort(dir.files)
 		} else {
-			orderedBy(dirFirst, extAsc, nameAsc).sort(d.files)
+			orderedBy(dirFirst, extDesc, nameDesc).sort(dir.files)
 		}
-	} else if d.sortCrit == SORT_SIZE {
-		if d.sortDesc {
-			orderedBy(dirFirst, sizeDesc, nameAsc).sort(d.files)
+	} else if dir.sortKey == config.SORT_BY_SIZE {
+		if dir.sortOrder == config.SORT_ASCENDING {
+			orderedBy(dirFirst, sizeAsc, nameAsc).sort(dir.files)
 		} else {
-			orderedBy(dirFirst, sizeAsc, nameAsc).sort(d.files)
+			orderedBy(dirFirst, sizeDesc, nameAsc).sort(dir.files)
 		}
-	} else if d.sortCrit == SORT_TIME {
-		if d.sortDesc {
-			orderedBy(dirFirst, timeDesc, nameAsc).sort(d.files)
+	} else if dir.sortKey == config.SORT_BY_TIME {
+		if dir.sortOrder == config.SORT_ASCENDING {
+			orderedBy(dirFirst, timeAsc, nameAsc).sort(dir.files)
 		} else {
-			orderedBy(dirFirst, timeAsc, nameAsc).sort(d.files)
+			orderedBy(dirFirst, timeDesc, nameAsc).sort(dir.files)
 		}
 	}
 }
 
-func reloadRoutine(d *dir) {
-	for i := <-d.ch; i != 0; i = <-d.ch {
-		if i == CMD_RELOAD {
-			log.Println(log.DIR, "go routine for path", d.path, "received CMD_RELOAD")
+func reloadRoutine(dir *Directory) {
+	for cmd := <-dir.ch; cmd != 0; cmd = <-dir.ch {
+		if cmd == CMD_RELOAD {
+			log.Println(log.DIR, "go routine for path", dir.path, "received CMD_RELOAD")
 			success := false
 			var prevSelectedFile string
-			if d.selectDir == "" && d.selection < len(d.files) {
-				prevSelectedFile = d.files[d.selection].Name()
+			if dir.selectDir == "" && dir.selection < len(dir.files) {
+				prevSelectedFile = dir.files[dir.selection].Name()
 			}
-			if dir, err := os.Open(d.path); err == nil {
-				if names, err := dir.Readdirnames(0); err == nil {
-					d.files = d.files[0:0]
-					log.Println(log.DIR, "before: len:", len(d.files), "cap:", cap(d.files))
+			if directory, err := os.Open(dir.path); err == nil {
+				if names, err := directory.Readdirnames(0); err == nil {
+					dir.files = dir.files[0:0]
+					log.Println(log.DIR, "before: len:", len(dir.files), "cap:", cap(dir.files))
 					for _, name := range names {
 						//time.Sleep(100 * time.Millisecond)
 						if name[0] != '.' {
-							log.Println(log.DIR, "creating file", d.path+string(filepath.Separator)+name)
-							if file := newFile(d.path + string(filepath.Separator) + name); file != nil {
-								d.files = append(d.files, file)
+							log.Println(log.DIR, "creating file", dir.path+string(filepath.Separator)+name)
+							if file := newFile(dir.path + string(filepath.Separator) + name); file != nil {
+								dir.files = append(dir.files, file)
 							} else {
 								log.Println(log.DIR, "Failed!!")
 							}
 						}
 					}
-					d.sort()
-					for i, f := range d.files {
-						if name := f.Name(); name == d.selectDir || name == prevSelectedFile {
-							d.selection = i
-							d.selectDir = ""
+					dir.sort()
+					for i, f := range dir.files {
+						if name := f.Name(); name == dir.selectDir || name == prevSelectedFile {
+							dir.selection = i
+							dir.selectDir = ""
 							break
 						}
 					}
-					log.Println(log.DIR, "after: len:", len(d.files), "cap:", cap(d.files))
-					if offset, ok := d.dispOffsetHist[d.path]; ok {
-						d.dispOffset = offset
-						delete(d.dispOffsetHist, d.path)
+					log.Println(log.DIR, "after: len:", len(dir.files), "cap:", cap(dir.files))
+					if offset, ok := dir.dispOffsetHist[dir.path]; ok {
+						dir.dispOffset = offset
+						delete(dir.dispOffsetHist, dir.path)
 					}
 					success = true
 				} else {
-					log.Println(log.DIR, "error reading", d.path)
+					log.Println(log.DIR, "error reading", dir.path)
 				}
-				dir.Close()
+				directory.Close()
 			} else {
-				log.Println(log.DIR, "error opening", d.path)
+				log.Println(log.DIR, "error opening", dir.path)
 			}
-			m := msg{success, d}
-			ch <- m
+			m := msg{success, dir}
+			channel <- m
 		} else {
-			log.Println(log.DIR, "go routine for path", d.path, "received unknown command")
+			log.Println(log.DIR, "go routine for path", dir.path, "received unknown command")
 		}
 	}
-	log.Println(log.DIR, "go routine for path", d.path, "exiting...")
+	log.Println(log.DIR, "go routine for path", dir.path, "exiting...")
 }
 
 func Receive() {
 	wait := time.After(10 * time.Millisecond)
 	select {
-	case m := <-ch:
-		log.Println(log.DIR, "received response for path", m.d.Path())
-		if m.d.state == STATE_RELOAD {
-			if m.success {
-				m.d.state = STATE_IDLE
+	case msg := <-channel:
+		log.Println(log.DIR, "received response for path", msg.dir.Path())
+		if msg.dir.state == STATE_RELOAD {
+			if msg.success {
+				msg.dir.state = STATE_IDLE
 			} else {
-				m.d.state = STATE_ERROR
+				msg.dir.state = STATE_ERROR
 			}
 			guiRefresh()
 		} else {

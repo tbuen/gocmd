@@ -1,36 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- sample config, copy to ~/.config/gocmd/apps.xml -->
 <apps>
-   <view>
-      <cmd>gnome-terminal</cmd>
-      <arg>--</arg>
-      <arg>less</arg>
-   </view>
-   <edit>
-      <cmd>gnome-terminal</cmd>
-      <arg>--</arg>
-      <arg>vim</arg>
-   </edit>
-   <app descr="document" color="#0000FF">
-      <ext>pdf</ext>
-      <ext>ps</ext>
-      <cmd>evince</cmd>
-   </app>
-   <app descr="image" color="#008800">
-      <ext>jpg</ext>
-      <ext>png</ext>
-      <cmd>gimp</cmd>
-   </app>
-   <app descr="movie" color="#FF0000">
-      <ext>mpg</ext>
-      <ext>mp4</ext>
-      <ext>webm</ext>
-      <ext>avi</ext>
-      <ext>mov</ext>
-      <cmd>cvlc</cmd>
-      <arg>--fullscreen</arg>
-      <arg>--video-on-top</arg>
-      <arg>--no-video-title-show</arg>
-      <arg>--play-and-exit</arg>
-   </app>
+	<view>
+		<cmd>gnome-terminal</cmd>
+		<arg>--</arg>
+		<arg>less</arg>
+	</view>
+	<edit>
+		<cmd>gnome-terminal</cmd>
+		<arg>--</arg>
+		<arg>vim</arg>
+	</edit>
+	<app descr="document" color="#0000FF">
+		<ext>pdf</ext>
+		<ext>ps</ext>
+		<cmd>evince</cmd>
+	</app>
+	<app descr="image" color="#008800">
+		<ext>jpg</ext>
+		<ext>png</ext>
+		<cmd>feh</cmd>
+		<arg>--fullscreen</arg>
+		<arg>--hide-pointer</arg>
+		<arg>--start-at</arg>
+	</app>
+	<app descr="movie" color="#FF0000">
+		<ext>mpg</ext>
+		<ext>mp4</ext>
+		<ext>webm</ext>
+		<ext>avi</ext>
+		<ext>mov</ext>
+		<cmd>cvlc</cmd>
+		<arg>--fullscreen</arg>
+		<arg>--video-on-top</arg>
+		<arg>--no-video-title-show</arg>
+		<arg>--play-and-exit</arg>
+	</app>
 </apps>

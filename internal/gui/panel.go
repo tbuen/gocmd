@@ -8,7 +8,7 @@ import (
 	"unicode/utf8"
 )
 
-func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, dir backend.Directory) {
+func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, dir *backend.Directory) {
 	const scrollbarWidth = 8.0
 
 	ch := 15.0
