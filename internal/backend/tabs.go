@@ -132,8 +132,8 @@ func DeleteTab(panel int) {
 	if len(*tabs) == 0 {
 		CreateTab(panel)
 	}
-	if *active >= len(*tabs) {
-		*active = len(*tabs) - 1
+	if *active > 0 {
+		*active--
 	}
 	log.Println(log.TAB, "deleting tab, after:", len(*tabs))
 	guiRefresh()
