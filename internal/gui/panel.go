@@ -14,10 +14,14 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 	ch := 15.0
 	cw := 6.0
 
+	setSourceColor(context, "F6F5F4")
+	context.Rectangle(0, 0, width, height)
+	context.Fill()
+
 	setSourceColor(context, "000000")
 	context.Rectangle(0, 0, width, height)
 	context.Stroke()
-	setSourceColor(context, "707070")
+	setSourceColor(context, "F6F5F4")
 	context.MoveTo(sx1, 0)
 	context.LineTo(sx2, 0)
 	context.Stroke()
@@ -138,7 +142,8 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 		for i := 0; i <= lines && offset+i < len(files); i++ {
 			file := files[offset+i]
 			if file.Marked() {
-				setSourceColor(context, "F26B3A")
+				//setSourceColor(context, "F26B3A")
+				setSourceColor(context, "B0B0B0")
 				context.Rectangle(2, 6+(float64(i)+1)*ch, width-5, ch)
 				context.Fill()
 			} else if i%2 == 0 {

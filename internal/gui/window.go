@@ -65,6 +65,10 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	//layout.SetFontDescription(pango.FontDescriptionFromString("Cantarell 10"));
 	context.SetLineWidth(1)
 
+	setSourceColor(context, "C0C0C0")
+	context.Rectangle(0, 0, width, height)
+	context.Fill()
+
 	if mode == MODE_SORT {
 		layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro 8"))
 		context.Save()

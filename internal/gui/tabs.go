@@ -10,19 +10,15 @@ func drawTabs(context *cairo.Context, layout *pango.Layout, width, height float6
 
 	var text string
 	var widths []float64
-	for i, title := range tabs {
-		if i == active {
-			text += ` <span foreground="#FFFFFF"><b>` + title + "</b></span> "
-		} else {
-			text += " " + title + " "
-		}
+	for _, title := range tabs {
+		text += " " + title + " "
 		widths = append(widths, (float64(len(title))+2)*cw)
 	}
 
 	x := 5.0
 	for i, w := range widths {
 		if i == active {
-			setSourceColor(context, "707070")
+			setSourceColor(context, "F6F5F4")
 			context.Rectangle(x, 0, w, height)
 			context.Fill()
 			context.SetLineWidth(2)
