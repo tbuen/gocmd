@@ -15,6 +15,14 @@ const (
 type panel struct {
 	tabs   []*Directory
 	active int
+	offset float64
+}
+
+type Tabs struct {
+	Panel  int
+	Titles []string
+	Active int
+	Offset float64
 }
 
 var (
@@ -83,13 +91,21 @@ func GetDirectory(panel int) (dir *Directory) {
 	return
 }
 
-func Tabs(panel int) (titles []string, active int) {
+func GetTabs(panel int) (tabs *Tabs) {
+	tabs = new(Tabs)
 	idx := panelIdx(panel)
+	tabs.Panel = idx
 	for _, dir := range panels[idx].tabs {
-		titles = append(titles, filepath.Base(dir.Path()))
+		tabs.Titles = append(tabs.Titles, filepath.Base(dir.Path()))
 	}
-	active = panels[idx].active
+	tabs.Active = panels[idx].active
+	tabs.Offset = panels[idx].offset
 	return
+}
+
+func SetTabOffset(panel int, offset float64) {
+	idx := panelIdx(panel)
+	panels[idx].offset = offset
 }
 
 func CreateTab(panel int) {

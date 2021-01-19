@@ -95,8 +95,7 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	tabs, active := backend.Tabs(backend.PANEL_LEFT)
-	sx1, sx2 := drawTabs(context, layout, w, h, tabs, active)
+	sx1, sx2 := drawTabs(context, layout, w, h, backend.GetTabs(backend.PANEL_LEFT))
 	context.Restore()
 
 	context.Save()
@@ -112,8 +111,7 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	tabs, active = backend.Tabs(backend.PANEL_RIGHT)
-	sx1, sx2 = drawTabs(context, layout, w, h, tabs, active)
+	sx1, sx2 = drawTabs(context, layout, w, h, backend.GetTabs(backend.PANEL_RIGHT))
 	context.Restore()
 
 	context.Save()
