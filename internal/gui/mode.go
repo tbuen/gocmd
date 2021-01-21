@@ -39,6 +39,8 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 		backend.TogglePanel()
 	case gdk.KEY_r:
 		dir.Reload()
+	case gdk.KEY_period:
+		dir.ToggleHidden()
 	case gdk.KEY_j, gdk.KEY_Down:
 		dir.SetSelectionRelative(1)
 	case gdk.KEY_J, gdk.KEY_Page_Down:

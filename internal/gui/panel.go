@@ -238,7 +238,11 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 	context.Fill()
 	if state == backend.STATE_IDLE {
 		info := dir.Info()
-		text := strconv.Itoa(info.NumDirs)
+		var text string
+		if dir.Hidden() {
+			text += ". "
+		}
+		text += strconv.Itoa(info.NumDirs)
 		if info.NumDirs == 1 {
 			text += " directory - "
 		} else {

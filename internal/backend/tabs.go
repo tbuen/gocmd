@@ -34,8 +34,8 @@ func Load() {
 	config.ReadApps()
 	tabcfg, err := config.ReadTabs()
 	if err != nil {
-		insertTab(PANEL_LEFT, newDirectory(""))
-		insertTab(PANEL_LEFT, newDirectory(""))
+		insertTab(PANEL_LEFT, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
+		insertTab(PANEL_LEFT, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
 		return
 	}
 	if tabcfg.Active < len(panels) {
@@ -43,8 +43,7 @@ func Load() {
 	}
 	for idx := PANEL_LEFT; idx <= PANEL_RIGHT; idx++ {
 		for _, tab := range tabcfg.Panels[idx].Tabs {
-			dir := newDirectory(tab.Path)
-			dir.SetSortKey(tab.SortKey, tab.SortOrder)
+			dir := newDirectory(tab.Path, tab.SortKey, tab.SortOrder, tab.Hidden)
 			insertTab(idx, dir)
 		}
 		if tabcfg.Panels[idx].Active < len(panels[idx].tabs) {
@@ -62,7 +61,7 @@ func Save() {
 		panel := config.Panel{}
 		for _, dir := range panels[idx].tabs {
 			sortKey, sortOrder := dir.SortKey()
-			panel.Tabs = append(panel.Tabs, config.Tab{dir.Path(), sortKey, sortOrder})
+			panel.Tabs = append(panel.Tabs, config.Tab{dir.Path(), sortKey, sortOrder, dir.Hidden()})
 		}
 		panel.Active = panels[idx].active
 		tabcfg.Panels = append(tabcfg.Panels, panel)
@@ -109,14 +108,14 @@ func SetTabOffset(panel int, offset float64) {
 }
 
 func CreateTab(panel int) {
-	insertTab(panel, newDirectory(""))
+	insertTab(panel, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
 }
 
 func CloneTab(panel int) {
 	src := GetDirectory(panel)
 	if src != nil {
-		clone := newDirectory(src.Path())
-		clone.SetSortKey(src.SortKey())
+		sortKey, sortOrder := src.SortKey()
+		clone := newDirectory(src.Path(), sortKey, sortOrder, src.Hidden())
 		insertTab(panel, clone)
 	}
 }

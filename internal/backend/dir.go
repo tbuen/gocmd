@@ -34,6 +34,7 @@ type Directory struct {
 	files          []File
 	sortKey        int
 	sortOrder      int
+	hidden         bool
 	selection      int
 	dispOffset     int
 	dispOffsetHist map[string]int
@@ -47,9 +48,12 @@ type msg struct {
 
 var channel = make(chan msg, 1)
 
-func newDirectory(path string) (dir *Directory) {
+func newDirectory(path string, sortKey int, sortOrder int, hidden bool) (dir *Directory) {
 	dir = new(Directory)
 	dir.dispOffsetHist = make(map[string]int)
+	dir.sortKey = sortKey
+	dir.sortOrder = sortOrder
+	dir.hidden = hidden
 	if path == "" {
 		home, err := os.UserHomeDir()
 		if err == nil {
@@ -176,42 +180,55 @@ func (dir *Directory) Edit() {
 	}
 }
 
-func (d *Directory) Root() {
-	if d.state == STATE_IDLE || d.state == STATE_ERROR {
-		if d.path != string(filepath.Separator) {
-			d.path = string(filepath.Separator)
-			d.dispOffset = 0
-			d.selection = 0
-			d.Reload()
+func (dir *Directory) Root() {
+	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
+		if dir.path != string(filepath.Separator) {
+			dir.path = string(filepath.Separator)
+			dir.dispOffset = 0
+			dir.selection = 0
+			dir.Reload()
 		}
 	}
 }
 
-func (d *Directory) Home() {
-	if d.state == STATE_IDLE || d.state == STATE_ERROR {
+func (dir *Directory) Home() {
+	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
 		home, err := os.UserHomeDir()
 		if err == nil {
-			if d.path != home {
-				d.path = home
-				d.dispOffset = 0
-				d.selection = 0
-				d.Reload()
+			if dir.path != home {
+				dir.path = home
+				dir.dispOffset = 0
+				dir.selection = 0
+				dir.Reload()
 			}
 		}
 	}
 }
 
 func (dir *Directory) SortKey() (sortKey, sortOrder int) {
+	// TODO state!!
 	sortKey, sortOrder = dir.sortKey, dir.sortOrder
 	return
 }
 
 func (dir *Directory) SetSortKey(sortKey, sortOrder int) {
+	// TODO state!!
 	if dir.sortKey != sortKey || dir.sortOrder != sortOrder {
 		dir.sortKey = sortKey
 		dir.sortOrder = sortOrder
 		dir.sort()
 		guiRefresh()
+	}
+}
+
+func (dir *Directory) Hidden() bool {
+	return dir.hidden
+}
+
+func (dir *Directory) ToggleHidden() {
+	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
+		dir.hidden = !dir.hidden
+		dir.Reload()
 	}
 }
 
@@ -330,7 +347,7 @@ func reloadRoutine(dir *Directory) {
 					log.Println(log.DIR, "before: len:", len(dir.files), "cap:", cap(dir.files))
 					for _, name := range names {
 						//time.Sleep(100 * time.Millisecond)
-						if name[0] != '.' {
+						if dir.hidden || name[0] != '.' {
 							log.Println(log.DIR, "creating file", dir.path+string(filepath.Separator)+name)
 							if file := newFile(dir.path + string(filepath.Separator) + name); file != nil {
 								dir.files = append(dir.files, file)
@@ -346,6 +363,9 @@ func reloadRoutine(dir *Directory) {
 							dir.selectDir = ""
 							break
 						}
+					}
+					if !dir.hidden && prevSelectedFile != "" && prevSelectedFile[0] == '.' {
+						dir.selection = 0
 					}
 					log.Println(log.DIR, "after: len:", len(dir.files), "cap:", cap(dir.files))
 					if offset, ok := dir.dispOffsetHist[dir.path]; ok {

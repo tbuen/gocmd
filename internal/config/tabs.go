@@ -23,6 +23,7 @@ type Tab struct {
 	Path      string `xml:"path,attr"`
 	SortKey   int    `xml:"sortkey,attr"`
 	SortOrder int    `xml:"sortorder,attr"`
+	Hidden    bool   `xml:"hidden,attr"`
 }
 
 type Panel struct {
