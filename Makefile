@@ -28,4 +28,4 @@ install:
 	mkdir -p $(DESTDIR)/usr/bin
 	cp $(BINARY) $(DESTDIR)/usr/bin/
 	mkdir -p $(DESTDIR)/usr/share/gocmd/config
-	cp configs/apps.xml $(DESTDIR)/usr/share/gocmd/config/apps.xml.sample
+	cp config/apps.xml $(DESTDIR)/usr/share/gocmd/config/apps.xml.sample
