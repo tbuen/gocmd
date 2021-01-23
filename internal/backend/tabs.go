@@ -35,7 +35,7 @@ func Load() {
 	tabcfg, err := config.ReadTabs()
 	if err != nil {
 		insertTab(PANEL_LEFT, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
-		insertTab(PANEL_LEFT, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
+		insertTab(PANEL_RIGHT, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
 		return
 	}
 	if tabcfg.Active < len(panels) {
