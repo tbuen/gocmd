@@ -12,8 +12,18 @@ const (
 	PANEL_ACTIVE
 )
 
+const (
+	TAB_MODE_DIRECTORY = iota
+	TAB_MODE_BOOKMARKS
+)
+
+type tab struct {
+	mode int
+	dir  *Directory
+}
+
 type panel struct {
-	tabs   []*Directory
+	tabs   []tab
 	active int
 	offset float64
 }
@@ -34,8 +44,8 @@ func Load() {
 	config.ReadApps()
 	tabcfg, err := config.ReadTabs()
 	if err != nil {
-		insertTab(PANEL_LEFT, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
-		insertTab(PANEL_RIGHT, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
+		insertTab(PANEL_LEFT, newDefaultDirectory())
+		insertTab(PANEL_RIGHT, newDefaultDirectory())
 		return
 	}
 	if tabcfg.Active < len(panels) {
@@ -59,9 +69,9 @@ func Save() {
 	tabcfg.Active = active
 	for idx := PANEL_LEFT; idx <= PANEL_RIGHT; idx++ {
 		panel := config.Panel{}
-		for _, dir := range panels[idx].tabs {
-			sortKey, sortOrder := dir.SortKey()
-			panel.Tabs = append(panel.Tabs, config.Tab{dir.Path(), sortKey, sortOrder, dir.Hidden()})
+		for _, tab := range panels[idx].tabs {
+			sortKey, sortOrder := tab.dir.SortKey()
+			panel.Tabs = append(panel.Tabs, config.Tab{tab.dir.Path(), sortKey, sortOrder, tab.dir.Hidden()})
 		}
 		panel.Active = panels[idx].active
 		tabcfg.Panels = append(tabcfg.Panels, panel)
@@ -82,10 +92,17 @@ func TogglePanel() {
 	guiRefresh()
 }
 
+func GetTabMode(panel int) (mode int) {
+	idx := panelIdx(panel)
+	mode = panels[idx].tabs[panels[idx].active].mode
+	return
+}
+
 func GetDirectory(panel int) (dir *Directory) {
 	idx := panelIdx(panel)
-	if len(panels[idx].tabs) > 0 {
-		dir = panels[idx].tabs[panels[idx].active]
+	tab := panels[idx].tabs[panels[idx].active]
+	if tab.mode == TAB_MODE_DIRECTORY {
+		dir = tab.dir
 	}
 	return
 }
@@ -94,8 +111,8 @@ func GetTabs(panel int) (tabs *Tabs) {
 	tabs = new(Tabs)
 	idx := panelIdx(panel)
 	tabs.Panel = idx
-	for _, dir := range panels[idx].tabs {
-		tabs.Titles = append(tabs.Titles, filepath.Base(dir.Path()))
+	for _, tab := range panels[idx].tabs {
+		tabs.Titles = append(tabs.Titles, filepath.Base(tab.dir.Path()))
 	}
 	tabs.Active = panels[idx].active
 	tabs.Offset = panels[idx].offset
@@ -108,23 +125,22 @@ func SetTabOffset(panel int, offset float64) {
 }
 
 func CreateTab(panel int) {
-	insertTab(panel, newDirectory("", config.SORT_BY_NAME, config.SORT_ASCENDING, false))
+	insertTab(panel, newDefaultDirectory())
 }
 
 func CloneTab(panel int) {
-	src := GetDirectory(panel)
-	if src != nil {
-		sortKey, sortOrder := src.SortKey()
-		clone := newDirectory(src.Path(), sortKey, sortOrder, src.Hidden())
-		insertTab(panel, clone)
-	}
+	idx := panelIdx(panel)
+	src := panels[idx].tabs[panels[idx].active].dir
+	sortKey, sortOrder := src.SortKey()
+	clone := newDirectory(src.Path(), sortKey, sortOrder, src.Hidden())
+	insertTab(panel, clone)
 }
 
 func DeleteTab(panel int) {
 	idx := panelIdx(panel)
 	tabs := &panels[idx].tabs
 	active := &panels[idx].active
-	dir := (*tabs)[*active]
+	dir := (*tabs)[*active].dir
 	dir.Destroy()
 	log.Println(log.TAB, "deleting tab, before:", len(*tabs))
 	*tabs = append((*tabs)[:*active], (*tabs)[*active+1:]...)
@@ -178,12 +194,14 @@ func insertTab(panel int, dir *Directory) {
 	active := &panels[idx].active
 	log.Println(log.TAB, "creating tab, before:", len(*tabs))
 	if len(*tabs) == 0 {
-		*tabs = append(*tabs, dir)
+		tab := tab{TAB_MODE_DIRECTORY, dir}
+		*tabs = append(*tabs, tab)
 		*active = 0
 	} else {
-		*tabs = append(*tabs, nil)
+		*tabs = append(*tabs, tab{})
 		copy((*tabs)[*active+2:], (*tabs)[*active+1:])
-		(*tabs)[*active+1] = dir
+		tab := tab{TAB_MODE_DIRECTORY, dir}
+		(*tabs)[*active+1] = tab
 		*active++
 	}
 	log.Println(log.TAB, "creating tab, after:", len(*tabs))

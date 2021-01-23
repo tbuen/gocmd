@@ -48,22 +48,25 @@ type msg struct {
 
 var channel = make(chan msg, 1)
 
+func newDefaultDirectory() (dir *Directory) {
+	home, err := os.UserHomeDir()
+	var path string
+	if err == nil {
+		path = home
+	} else {
+		path = string(filepath.Separator)
+	}
+	dir = newDirectory(path, config.SORT_BY_NAME, config.SORT_ASCENDING, false)
+	return
+}
+
 func newDirectory(path string, sortKey int, sortOrder int, hidden bool) (dir *Directory) {
 	dir = new(Directory)
 	dir.dispOffsetHist = make(map[string]int)
+	dir.path = path
 	dir.sortKey = sortKey
 	dir.sortOrder = sortOrder
 	dir.hidden = hidden
-	if path == "" {
-		home, err := os.UserHomeDir()
-		if err == nil {
-			dir.path = home
-		} else {
-			dir.path = string(filepath.Separator)
-		}
-	} else {
-		dir.path = path
-	}
 	return
 }
 

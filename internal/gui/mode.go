@@ -30,13 +30,42 @@ func onKeyPress(win *gtk.ApplicationWindow, ev *gdk.Event) {
 }
 
 func keyNormal(win *gtk.ApplicationWindow, key uint) {
-	dir := backend.GetDirectory(backend.PANEL_ACTIVE)
 	switch key {
 	case gdk.KEY_Q:
 		// TODO: Ctrl-Q, Alt-Q etc. should not work...
 		win.Close()
 	case gdk.KEY_Tab:
 		backend.TogglePanel()
+	case gdk.KEY_v:
+		mode = MODE_VIEW
+		Refresh()
+	case gdk.KEY_t:
+		backend.CreateTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_T:
+		backend.CloneTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_w:
+		backend.DeleteTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_h, gdk.KEY_Left:
+		backend.PrevTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_H: // TODO Shift+Left
+		backend.FirstTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_l, gdk.KEY_Right:
+		backend.NextTab(backend.PANEL_ACTIVE)
+	case gdk.KEY_L: // TODO Shift+Right
+		backend.LastTab(backend.PANEL_ACTIVE)
+	default:
+		switch backend.GetTabMode(backend.PANEL_ACTIVE) {
+		case backend.TAB_MODE_DIRECTORY:
+			keyDirectory(key)
+		case backend.TAB_MODE_BOOKMARKS:
+			keyBookmark(key)
+		}
+	}
+}
+
+func keyDirectory(key uint) {
+	dir := backend.GetDirectory(backend.PANEL_ACTIVE)
+	switch key {
 	case gdk.KEY_r:
 		dir.Reload()
 	case gdk.KEY_period:
@@ -72,22 +101,10 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 	case gdk.KEY_s:
 		mode = MODE_SORT
 		Refresh()
-	case gdk.KEY_v:
-		mode = MODE_VIEW
-		Refresh()
-	case gdk.KEY_t:
-		backend.CreateTab(backend.PANEL_ACTIVE)
-	case gdk.KEY_T:
-		backend.CloneTab(backend.PANEL_ACTIVE)
-	case gdk.KEY_w:
-		backend.DeleteTab(backend.PANEL_ACTIVE)
-	case gdk.KEY_h, gdk.KEY_Left:
-		backend.PrevTab(backend.PANEL_ACTIVE)
-	case gdk.KEY_H: // TODO Shift+Left
-		backend.FirstTab(backend.PANEL_ACTIVE)
-	case gdk.KEY_l, gdk.KEY_Right:
-		backend.NextTab(backend.PANEL_ACTIVE)
-	case gdk.KEY_L: // TODO Shift+Right
-		backend.LastTab(backend.PANEL_ACTIVE)
+	}
+}
+
+func keyBookmark(key uint) {
+	switch key {
 	}
 }
