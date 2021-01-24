@@ -36,9 +36,6 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 		win.Close()
 	case gdk.KEY_Tab:
 		backend.TogglePanel()
-	case gdk.KEY_v:
-		mode = MODE_VIEW
-		Refresh()
 	case gdk.KEY_t:
 		backend.CreateTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_T:
@@ -98,13 +95,33 @@ func keyDirectory(key uint) {
 		dir.View()
 	case gdk.KEY_F4:
 		dir.Edit()
+	case gdk.KEY_v:
+		mode = MODE_VIEW
+		Refresh()
 	case gdk.KEY_s:
 		mode = MODE_SORT
 		Refresh()
+	case gdk.KEY_b:
+		backend.ShowBookmarks(backend.PANEL_ACTIVE)
 	}
 }
 
 func keyBookmark(key uint) {
+	bm := backend.GetBookmarks(backend.PANEL_ACTIVE)
 	switch key {
+	case gdk.KEY_j, gdk.KEY_Down:
+		bm.SetSelectionRelative(1)
+	case gdk.KEY_J, gdk.KEY_Page_Down:
+		bm.SetSelectionRelative(20)
+	case gdk.KEY_k, gdk.KEY_Up:
+		bm.SetSelectionRelative(-1)
+	case gdk.KEY_K, gdk.KEY_Page_Up:
+		bm.SetSelectionRelative(-20)
+	case gdk.KEY_g, gdk.KEY_Home:
+		bm.SetSelectionAbsolute(0)
+	case gdk.KEY_G, gdk.KEY_End:
+		bm.SetSelectionAbsolute(-1)
+	case gdk.KEY_b, gdk.KEY_q, gdk.KEY_Escape:
+		backend.HideBookmarks(backend.PANEL_ACTIVE)
 	}
 }

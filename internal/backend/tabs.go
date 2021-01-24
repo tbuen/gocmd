@@ -18,8 +18,9 @@ const (
 )
 
 type tab struct {
-	mode int
-	dir  *Directory
+	mode      int
+	dir       *Directory
+	bookmarks *Bookmarks
 }
 
 type panel struct {
@@ -41,7 +42,9 @@ var (
 )
 
 func Load() {
+	// TODO put this in a separate file
 	config.ReadApps()
+	config.ReadBookmarks()
 	tabcfg, err := config.ReadTabs()
 	if err != nil {
 		insertTab(PANEL_LEFT, newDefaultDirectory())
@@ -77,6 +80,8 @@ func Save() {
 		tabcfg.Panels = append(tabcfg.Panels, panel)
 	}
 	config.WriteTabs(&tabcfg)
+	// TODO separate file:
+	config.WriteBookmarks()
 }
 
 func ActivePanel() int {
@@ -98,11 +103,39 @@ func GetTabMode(panel int) (mode int) {
 	return
 }
 
+func ShowBookmarks(panel int) {
+	idx := panelIdx(panel)
+	if panels[idx].tabs[panels[idx].active].mode == TAB_MODE_DIRECTORY {
+		panels[idx].tabs[panels[idx].active].mode = TAB_MODE_BOOKMARKS
+		if panels[idx].tabs[panels[idx].active].bookmarks == nil {
+			panels[idx].tabs[panels[idx].active].bookmarks = newBookmarks()
+		}
+		guiRefresh()
+	}
+}
+
+func HideBookmarks(panel int) {
+	idx := panelIdx(panel)
+	if panels[idx].tabs[panels[idx].active].mode == TAB_MODE_BOOKMARKS {
+		panels[idx].tabs[panels[idx].active].mode = TAB_MODE_DIRECTORY
+		guiRefresh()
+	}
+}
+
 func GetDirectory(panel int) (dir *Directory) {
 	idx := panelIdx(panel)
 	tab := panels[idx].tabs[panels[idx].active]
 	if tab.mode == TAB_MODE_DIRECTORY {
 		dir = tab.dir
+	}
+	return
+}
+
+func GetBookmarks(panel int) (bookmarks *Bookmarks) {
+	idx := panelIdx(panel)
+	tab := panels[idx].tabs[panels[idx].active]
+	if tab.mode == TAB_MODE_BOOKMARKS {
+		bookmarks = tab.bookmarks
 	}
 	return
 }
@@ -194,13 +227,13 @@ func insertTab(panel int, dir *Directory) {
 	active := &panels[idx].active
 	log.Println(log.TAB, "creating tab, before:", len(*tabs))
 	if len(*tabs) == 0 {
-		tab := tab{TAB_MODE_DIRECTORY, dir}
+		tab := tab{TAB_MODE_DIRECTORY, dir, nil}
 		*tabs = append(*tabs, tab)
 		*active = 0
 	} else {
 		*tabs = append(*tabs, tab{})
 		copy((*tabs)[*active+2:], (*tabs)[*active+1:])
-		tab := tab{TAB_MODE_DIRECTORY, dir}
+		tab := tab{TAB_MODE_DIRECTORY, dir, nil}
 		(*tabs)[*active+1] = tab
 		*active++
 	}

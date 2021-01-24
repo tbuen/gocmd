@@ -103,7 +103,12 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
+	switch backend.GetTabMode(backend.PANEL_LEFT) {
+	case backend.TAB_MODE_DIRECTORY:
+		drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
+	case backend.TAB_MODE_BOOKMARKS:
+		drawBookmarks(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetBookmarks(backend.PANEL_LEFT))
+	}
 	context.Restore()
 
 	context.Save()
@@ -119,6 +124,11 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
+	switch backend.GetTabMode(backend.PANEL_RIGHT) {
+	case backend.TAB_MODE_DIRECTORY:
+		drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
+	case backend.TAB_MODE_BOOKMARKS:
+		drawBookmarks(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetBookmarks(backend.PANEL_RIGHT))
+	}
 	context.Restore()
 }
