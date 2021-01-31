@@ -1,7 +1,10 @@
 package backend
 
 import (
+	"github.com/tbuen/gocmd/internal/backend/gui"
+	"github.com/tbuen/gocmd/internal/backend/list"
 	"github.com/tbuen/gocmd/internal/config"
+	. "github.com/tbuen/gocmd/internal/global"
 	"github.com/tbuen/gocmd/internal/log"
 	"path/filepath"
 )
@@ -18,9 +21,9 @@ const (
 )
 
 type tab struct {
-	mode      int
-	dir       *Directory
-	bookmarks *Bookmarks
+	mode int
+	dir  *Directory
+	bl   list.Bookmarks
 }
 
 type panel struct {
@@ -44,7 +47,6 @@ var (
 func Load() {
 	// TODO put this in a separate file
 	config.ReadApps()
-	config.ReadBookmarks()
 	tabcfg, err := config.ReadTabs()
 	if err != nil {
 		insertTab(PANEL_LEFT, newDefaultDirectory())
@@ -81,7 +83,6 @@ func Save() {
 	}
 	config.WriteTabs(&tabcfg)
 	// TODO separate file:
-	config.WriteBookmarks()
 }
 
 func ActivePanel() int {
@@ -94,7 +95,7 @@ func TogglePanel() {
 	} else {
 		active = PANEL_LEFT
 	}
-	guiRefresh()
+	gui.Refresh()
 }
 
 func GetTabMode(panel int) (mode int) {
@@ -107,10 +108,15 @@ func ShowBookmarks(panel int) {
 	idx := panelIdx(panel)
 	if panels[idx].tabs[panels[idx].active].mode == TAB_MODE_DIRECTORY {
 		panels[idx].tabs[panels[idx].active].mode = TAB_MODE_BOOKMARKS
-		if panels[idx].tabs[panels[idx].active].bookmarks == nil {
-			panels[idx].tabs[panels[idx].active].bookmarks = newBookmarks()
-		}
-		guiRefresh()
+		gui.Refresh()
+	}
+}
+
+func AddBookmark(panel int) {
+	idx := panelIdx(panel)
+	if panels[idx].tabs[panels[idx].active].mode == TAB_MODE_DIRECTORY {
+		config.Bookmarks().Add(Bookmark{panels[idx].tabs[panels[idx].active].dir.Path()})
+		gui.Refresh()
 	}
 }
 
@@ -118,7 +124,7 @@ func HideBookmarks(panel int) {
 	idx := panelIdx(panel)
 	if panels[idx].tabs[panels[idx].active].mode == TAB_MODE_BOOKMARKS {
 		panels[idx].tabs[panels[idx].active].mode = TAB_MODE_DIRECTORY
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -131,11 +137,11 @@ func GetDirectory(panel int) (dir *Directory) {
 	return
 }
 
-func GetBookmarks(panel int) (bookmarks *Bookmarks) {
+func GetBookmarks(panel int) (b *list.Bookmarks) {
 	idx := panelIdx(panel)
-	tab := panels[idx].tabs[panels[idx].active]
+	tab := &panels[idx].tabs[panels[idx].active]
 	if tab.mode == TAB_MODE_BOOKMARKS {
-		bookmarks = tab.bookmarks
+		b = &tab.bl
 	}
 	return
 }
@@ -184,14 +190,14 @@ func DeleteTab(panel int) {
 		*active--
 	}
 	log.Println(log.TAB, "deleting tab, after:", len(*tabs))
-	guiRefresh()
+	gui.Refresh()
 }
 
 func FirstTab(panel int) {
 	idx := panelIdx(panel)
 	if panels[idx].active != 0 {
 		panels[idx].active = 0
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -199,7 +205,7 @@ func PrevTab(panel int) {
 	idx := panelIdx(panel)
 	if panels[idx].active > 0 {
 		panels[idx].active--
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -208,7 +214,7 @@ func NextTab(panel int) {
 	num := len(panels[idx].tabs)
 	if panels[idx].active < num-1 {
 		panels[idx].active++
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -217,7 +223,7 @@ func LastTab(panel int) {
 	num := len(panels[idx].tabs)
 	if panels[idx].active != num-1 {
 		panels[idx].active = num - 1
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -227,13 +233,13 @@ func insertTab(panel int, dir *Directory) {
 	active := &panels[idx].active
 	log.Println(log.TAB, "creating tab, before:", len(*tabs))
 	if len(*tabs) == 0 {
-		tab := tab{TAB_MODE_DIRECTORY, dir, nil}
+		tab := tab{dir: dir}
 		*tabs = append(*tabs, tab)
 		*active = 0
 	} else {
 		*tabs = append(*tabs, tab{})
 		copy((*tabs)[*active+2:], (*tabs)[*active+1:])
-		tab := tab{TAB_MODE_DIRECTORY, dir, nil}
+		tab := tab{dir: dir}
 		(*tabs)[*active+1] = tab
 		*active++
 	}

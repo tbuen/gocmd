@@ -6,13 +6,14 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/backend"
+	"github.com/tbuen/gocmd/internal/backend/gui"
 	"github.com/tbuen/gocmd/internal/log"
 )
 
 var window *gtk.ApplicationWindow
 
 func init() {
-	backend.RegisterRefresh(Refresh)
+	gui.RegisterRefresh(Refresh)
 }
 
 func NewWindow(app *gtk.Application, title string) {

@@ -1,4 +1,4 @@
-package backend
+package gui
 
 var refreshFct func()
 
@@ -6,7 +6,7 @@ func RegisterRefresh(refresh func()) {
 	refreshFct = refresh
 }
 
-func guiRefresh() {
+func Refresh() {
 	if refreshFct != nil {
 		refreshFct()
 	}

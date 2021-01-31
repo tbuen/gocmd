@@ -103,6 +103,8 @@ func keyDirectory(key uint) {
 		Refresh()
 	case gdk.KEY_b:
 		backend.ShowBookmarks(backend.PANEL_ACTIVE)
+	case gdk.KEY_B:
+		backend.AddBookmark(backend.PANEL_ACTIVE)
 	}
 }
 

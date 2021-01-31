@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/tbuen/gocmd/internal/backend/gui"
 	"github.com/tbuen/gocmd/internal/config"
 	"github.com/tbuen/gocmd/internal/log"
 	"os"
@@ -92,7 +93,7 @@ func (dir *Directory) Reload() {
 			go reloadRoutine(dir)
 		}
 		dir.ch <- CMD_RELOAD
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -220,7 +221,7 @@ func (dir *Directory) SetSortKey(sortKey, sortOrder int) {
 		dir.sortKey = sortKey
 		dir.sortOrder = sortOrder
 		dir.sort()
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -279,7 +280,7 @@ func (dir *Directory) SetSelectionAbsolute(n int) {
 		if dir.selection < 0 || dir.selection >= len(dir.files) {
 			dir.selection = len(dir.files) - 1
 		}
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -294,7 +295,7 @@ func (dir *Directory) SetDispOffset(offset int) {
 func (dir *Directory) ToggleMarkSelected() {
 	if dir.selection < len(dir.files) {
 		dir.files[dir.selection].toggleMark()
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -303,7 +304,7 @@ func (dir *Directory) ToggleMarkAll() {
 		for _, f := range dir.files {
 			f.toggleMark()
 		}
-		guiRefresh()
+		gui.Refresh()
 	}
 }
 
@@ -403,7 +404,7 @@ func Receive() {
 			} else {
 				msg.dir.state = STATE_ERROR
 			}
-			guiRefresh()
+			gui.Refresh()
 		} else {
 			log.Println(log.DIR, "directory already dead")
 		}
