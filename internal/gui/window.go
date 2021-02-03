@@ -5,8 +5,9 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/gotk3/gotk3/pango"
-	"github.com/tbuen/gocmd/internal/backend"
 	"github.com/tbuen/gocmd/internal/backend/gui"
+	"github.com/tbuen/gocmd/internal/backend/panel"
+	"github.com/tbuen/gocmd/internal/backend/tab"
 	"github.com/tbuen/gocmd/internal/log"
 )
 
@@ -74,7 +75,7 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 		layout.SetFontDescription(pango.FontDescriptionFromString("Source Code Pro 8"))
 		context.Save()
 		context.Translate(0, 0)
-		drawSort(context, layout, width, 30.0, backend.GetDirectory(backend.PANEL_ACTIVE))
+		drawSort(context, layout, width, 30.0, panel.Left().Tab().Directory())
 		context.Restore()
 		offsetTop = 30.0
 	}
@@ -96,7 +97,7 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	sx1, sx2 := drawTabs(context, layout, w, h, backend.GetTabs(backend.PANEL_LEFT))
+	sx1, sx2 := drawTabs(context, layout, w, h, panel.Left().Header())
 	context.Restore()
 
 	context.Save()
@@ -104,11 +105,11 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	switch backend.GetTabMode(backend.PANEL_LEFT) {
-	case backend.TAB_MODE_DIRECTORY:
-		drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetDirectory(backend.PANEL_LEFT))
-	case backend.TAB_MODE_BOOKMARKS:
-		drawBookmarks(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_LEFT, backend.GetBookmarks(backend.PANEL_LEFT))
+	switch panel.Left().Tab().Mode() {
+	case tab.MODE_DIRECTORY:
+		drawPanel(context, layout, w, h, sx1, sx2, panel.Left().IsActive(), panel.Left().Tab().Directory())
+	case tab.MODE_BOOKMARKS:
+		drawBookmarks(context, layout, w, h, sx1, sx2, panel.Left().IsActive(), panel.Left().Tab().Bookmarks())
 	}
 	context.Restore()
 
@@ -117,7 +118,7 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	sx1, sx2 = drawTabs(context, layout, w, h, backend.GetTabs(backend.PANEL_RIGHT))
+	sx1, sx2 = drawTabs(context, layout, w, h, panel.Right().Header())
 	context.Restore()
 
 	context.Save()
@@ -125,11 +126,11 @@ func onDraw(da *gtk.DrawingArea, context *cairo.Context) {
 	context.Translate(x, y)
 	context.Rectangle(-1, -1, w+1, h+1)
 	context.Clip()
-	switch backend.GetTabMode(backend.PANEL_RIGHT) {
-	case backend.TAB_MODE_DIRECTORY:
-		drawPanel(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetDirectory(backend.PANEL_RIGHT))
-	case backend.TAB_MODE_BOOKMARKS:
-		drawBookmarks(context, layout, w, h, sx1, sx2, backend.ActivePanel() == backend.PANEL_RIGHT, backend.GetBookmarks(backend.PANEL_RIGHT))
+	switch panel.Right().Tab().Mode() {
+	case tab.MODE_DIRECTORY:
+		drawPanel(context, layout, w, h, sx1, sx2, panel.Right().IsActive(), panel.Right().Tab().Directory())
+	case tab.MODE_BOOKMARKS:
+		drawBookmarks(context, layout, w, h, sx1, sx2, panel.Right().IsActive(), panel.Right().Tab().Bookmarks())
 	}
 	context.Restore()
 }

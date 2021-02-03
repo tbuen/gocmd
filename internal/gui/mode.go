@@ -3,7 +3,8 @@ package gui
 import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
-	"github.com/tbuen/gocmd/internal/backend"
+	"github.com/tbuen/gocmd/internal/backend/panel"
+	"github.com/tbuen/gocmd/internal/backend/tab"
 	"github.com/tbuen/gocmd/internal/log"
 )
 
@@ -35,33 +36,33 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 		// TODO: Ctrl-Q, Alt-Q etc. should not work...
 		win.Close()
 	case gdk.KEY_Tab:
-		backend.TogglePanel()
+		panel.Toggle()
 	case gdk.KEY_t:
-		backend.CreateTab(backend.PANEL_ACTIVE)
+		panel.Active().NewTab()
 	case gdk.KEY_T:
-		backend.CloneTab(backend.PANEL_ACTIVE)
+		panel.Active().CloneTab()
 	case gdk.KEY_w:
-		backend.DeleteTab(backend.PANEL_ACTIVE)
+		panel.Active().DeleteTab()
 	case gdk.KEY_h, gdk.KEY_Left:
-		backend.PrevTab(backend.PANEL_ACTIVE)
+		//backend.PrevTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_H: // TODO Shift+Left
-		backend.FirstTab(backend.PANEL_ACTIVE)
+		//backend.FirstTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_l, gdk.KEY_Right:
-		backend.NextTab(backend.PANEL_ACTIVE)
+		//backend.NextTab(backend.PANEL_ACTIVE)
 	case gdk.KEY_L: // TODO Shift+Right
-		backend.LastTab(backend.PANEL_ACTIVE)
+		//backend.LastTab(backend.PANEL_ACTIVE)
 	default:
-		switch backend.GetTabMode(backend.PANEL_ACTIVE) {
-		case backend.TAB_MODE_DIRECTORY:
+		switch panel.Active().Tab().Mode() {
+		case tab.MODE_DIRECTORY:
 			keyDirectory(key)
-		case backend.TAB_MODE_BOOKMARKS:
+		case tab.MODE_BOOKMARKS:
 			keyBookmark(key)
 		}
 	}
 }
 
 func keyDirectory(key uint) {
-	dir := backend.GetDirectory(backend.PANEL_ACTIVE)
+	dir := panel.Active().Tab().Directory()
 	switch key {
 	case gdk.KEY_r:
 		dir.Reload()
@@ -102,28 +103,28 @@ func keyDirectory(key uint) {
 		mode = MODE_SORT
 		Refresh()
 	case gdk.KEY_b:
-		backend.ShowBookmarks(backend.PANEL_ACTIVE)
+		panel.Active().Tab().ShowBookmarks()
 	case gdk.KEY_B:
-		backend.AddBookmark(backend.PANEL_ACTIVE)
+		//backend.AddBookmark(backend.PANEL_ACTIVE)
 	}
 }
 
 func keyBookmark(key uint) {
-	bm := backend.GetBookmarks(backend.PANEL_ACTIVE)
+	b := panel.Active().Tab().Bookmarks()
 	switch key {
 	case gdk.KEY_j, gdk.KEY_Down:
-		bm.SetSelectionRelative(1)
+		b.SetSelectionRelative(1)
 	case gdk.KEY_J, gdk.KEY_Page_Down:
-		bm.SetSelectionRelative(20)
+		b.SetSelectionRelative(20)
 	case gdk.KEY_k, gdk.KEY_Up:
-		bm.SetSelectionRelative(-1)
+		b.SetSelectionRelative(-1)
 	case gdk.KEY_K, gdk.KEY_Page_Up:
-		bm.SetSelectionRelative(-20)
+		b.SetSelectionRelative(-20)
 	case gdk.KEY_g, gdk.KEY_Home:
-		bm.SetSelectionAbsolute(0)
+		b.SetSelectionAbsolute(0)
 	case gdk.KEY_G, gdk.KEY_End:
-		bm.SetSelectionAbsolute(-1)
+		b.SetSelectionAbsolute(-1)
 	case gdk.KEY_b, gdk.KEY_q, gdk.KEY_Escape:
-		backend.HideBookmarks(backend.PANEL_ACTIVE)
+		panel.Active().Tab().HideBookmarks()
 	}
 }

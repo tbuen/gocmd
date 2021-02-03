@@ -4,12 +4,13 @@ import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/pango"
-	"github.com/tbuen/gocmd/internal/backend"
+	"github.com/tbuen/gocmd/internal/backend/dir"
+	"github.com/tbuen/gocmd/internal/backend/panel"
 	"github.com/tbuen/gocmd/internal/config"
 )
 
-func drawSort(context *cairo.Context, layout *pango.Layout, width, height float64, dir *backend.Directory) {
-	sortKey, sortOrder := dir.SortKey()
+func drawSort(context *cairo.Context, layout *pango.Layout, width, height float64, d *dir.Directory) {
+	sortKey, sortOrder := d.SortKey()
 
 	setSourceColor(context, "F26B3A")
 	context.Rectangle(5, 5, width-8, height-9)
@@ -63,8 +64,8 @@ func drawSort(context *cairo.Context, layout *pango.Layout, width, height float6
 }
 
 func keySort(key uint) {
-	dir := backend.GetDirectory(backend.PANEL_ACTIVE)
-	sortKey, sortOrder := dir.SortKey()
+	d := panel.Active().Tab().Directory()
+	sortKey, sortOrder := d.SortKey()
 	switch key {
 	case gdk.KEY_h, gdk.KEY_Left:
 		if sortKey == config.SORT_BY_EXT {
@@ -74,7 +75,7 @@ func keySort(key uint) {
 		} else if sortKey == config.SORT_BY_TIME {
 			sortKey = config.SORT_BY_SIZE
 		}
-		dir.SetSortKey(sortKey, sortOrder)
+		d.SetSortKey(sortKey, sortOrder)
 	case gdk.KEY_l, gdk.KEY_Right:
 		if sortKey == config.SORT_BY_NAME {
 			sortKey = config.SORT_BY_EXT
@@ -83,11 +84,11 @@ func keySort(key uint) {
 		} else if sortKey == config.SORT_BY_SIZE {
 			sortKey = config.SORT_BY_TIME
 		}
-		dir.SetSortKey(sortKey, sortOrder)
+		d.SetSortKey(sortKey, sortOrder)
 	case gdk.KEY_j, gdk.KEY_Down:
-		dir.SetSortKey(sortKey, config.SORT_DESCENDING)
+		d.SetSortKey(sortKey, config.SORT_DESCENDING)
 	case gdk.KEY_k, gdk.KEY_Up:
-		dir.SetSortKey(sortKey, config.SORT_ASCENDING)
+		d.SetSortKey(sortKey, config.SORT_ASCENDING)
 	case gdk.KEY_s, gdk.KEY_q, gdk.KEY_Escape, gdk.KEY_Return:
 		mode = MODE_NORMAL
 		Refresh()

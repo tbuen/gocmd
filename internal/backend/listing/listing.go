@@ -1,15 +1,15 @@
-package list
+package listing
 
 import (
 	"github.com/tbuen/gocmd/internal/backend/gui"
 )
 
-type list struct {
+type listing struct {
 	selection int
 	offset    int
 }
 
-func (lst *list) setSelRel(l, n int) {
+func (lst *listing) setSelRel(l, n int) {
 	if n >= 0 {
 		lst.setSelAbs(l, lst.selection+n)
 	} else {
@@ -21,7 +21,7 @@ func (lst *list) setSelRel(l, n int) {
 	}
 }
 
-func (lst *list) setSelAbs(l, n int) {
+func (lst *listing) setSelAbs(l, n int) {
 	lst.selection = n
 	if lst.selection < 0 || lst.selection >= l {
 		lst.selection = l - 1

@@ -1,4 +1,4 @@
-package backend
+package dir
 
 import (
 	"github.com/tbuen/gocmd/internal/backend/gui"
@@ -49,7 +49,7 @@ type msg struct {
 
 var channel = make(chan msg, 1)
 
-func newDefaultDirectory() (dir *Directory) {
+func New() *Directory {
 	home, err := os.UserHomeDir()
 	var path string
 	if err == nil {
@@ -57,18 +57,17 @@ func newDefaultDirectory() (dir *Directory) {
 	} else {
 		path = string(filepath.Separator)
 	}
-	dir = newDirectory(path, config.SORT_BY_NAME, config.SORT_ASCENDING, false)
-	return
+	return newDirectory(path, config.SORT_BY_NAME, config.SORT_ASCENDING, false)
 }
 
-func newDirectory(path string, sortKey int, sortOrder int, hidden bool) (dir *Directory) {
-	dir = new(Directory)
-	dir.dispOffsetHist = make(map[string]int)
-	dir.path = path
-	dir.sortKey = sortKey
-	dir.sortOrder = sortOrder
-	dir.hidden = hidden
-	return
+func newDirectory(path string, sortKey int, sortOrder int, hidden bool) *Directory {
+	d := new(Directory)
+	d.dispOffsetHist = make(map[string]int)
+	d.path = path
+	d.sortKey = sortKey
+	d.sortOrder = sortOrder
+	d.hidden = hidden
+	return d
 }
 
 func (dir *Directory) State() int {

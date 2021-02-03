@@ -3,10 +3,10 @@ package gui
 import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
-	"github.com/tbuen/gocmd/internal/backend/list"
+	"github.com/tbuen/gocmd/internal/backend/listing"
 )
 
-func drawBookmarks(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, lst *list.Bookmarks) {
+func drawBookmarks(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, l *listing.Bookmarks) {
 	const scrollbarWidth = 8.0
 
 	ch := 15.0
@@ -24,7 +24,7 @@ func drawBookmarks(context *cairo.Context, layout *pango.Layout, width, height, 
 	context.LineTo(sx2, 0)
 	context.Stroke()
 
-	if lst == nil {
+	if l == nil {
 		return
 	}
 
@@ -50,10 +50,10 @@ func drawBookmarks(context *cairo.Context, layout *pango.Layout, width, height, 
 	width -= scrollbarWidth
 	columns = int((width - 10) / cw)
 
-	bookmarks := lst.Bookmarks()
+	bookmarks := l.Bookmarks()
 
-	selection := lst.Selection()
-	offset := lst.DispOffset()
+	selection := l.Selection()
+	offset := l.DispOffset()
 
 	if len(bookmarks) <= lines {
 		offset = 0
@@ -66,7 +66,7 @@ func drawBookmarks(context *cairo.Context, layout *pango.Layout, width, height, 
 	if selection < offset {
 		offset = selection
 	}
-	lst.SetDispOffset(offset)
+	l.SetDispOffset(offset)
 
 	lenPath := columns
 
@@ -91,7 +91,7 @@ func drawBookmarks(context *cairo.Context, layout *pango.Layout, width, height, 
 
 		var line string
 		line = bookmark.Path
-		//bookmarks[offset+i].Path = "vonguigesetzt"
+		bookmarks[offset+i].Path = "vonguigesetzt"
 		line = restrictBack(line, lenPath)
 
 		layout.SetText(line, -1)

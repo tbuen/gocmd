@@ -1,9 +1,13 @@
 package backend
 
+import (
+	"github.com/tbuen/gocmd/internal/backend/panel"
+)
+
 func Start() {
-	Load()
+	panel.Load()
 }
 
 func Stop() {
-	Save()
+	panel.Save()
 }

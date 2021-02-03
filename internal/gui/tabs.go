@@ -3,28 +3,28 @@ package gui
 import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
-	"github.com/tbuen/gocmd/internal/backend"
+	"github.com/tbuen/gocmd/internal/backend/panel"
 )
 
-func drawTabs(context *cairo.Context, layout *pango.Layout, width, height float64, tabs *backend.Tabs) (sx1, sx2 float64) {
+func drawTabs(context *cairo.Context, layout *pango.Layout, width, height float64, header *panel.Header) (sx1, sx2 float64) {
 	cw := 6.0
 	space := 30.0
-	offset := tabs.Offset
+	offset := header.Offset
 
 	var text string
 	var widths []float64
 	var activeX1 float64
 	var activeX2 float64
 	var sumWidth float64
-	for i, title := range tabs.Titles {
+	for i, title := range header.Titles {
 		w := (float64(len(title)) + 2) * cw
 		text += " " + title + " "
 		widths = append(widths, w)
 		sumWidth += w
-		if i < tabs.Active {
+		if i < header.Active {
 			activeX1 += w
 		}
-		if i <= tabs.Active {
+		if i <= header.Active {
 			activeX2 += w
 		}
 	}
@@ -40,7 +40,7 @@ func drawTabs(context *cairo.Context, layout *pango.Layout, width, height float6
 	if offset < activeX2-(width-2*space)+1 {
 		offset = activeX2 - (width - 2*space) + 1
 	}
-	backend.SetTabOffset(tabs.Panel, offset)
+	header.Offset = offset
 
 	if offset > 0 {
 		setSourceColor(context, "000000")
@@ -67,7 +67,7 @@ func drawTabs(context *cairo.Context, layout *pango.Layout, width, height float6
 
 	x := space - offset
 	for i, w := range widths {
-		if i == tabs.Active {
+		if i == header.Active {
 			setSourceColor(context, "F6F5F4")
 			context.Rectangle(x, 0, w, height)
 			context.Fill()

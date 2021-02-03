@@ -1,4 +1,4 @@
-package list
+package listing
 
 import (
 	"github.com/tbuen/gocmd/internal/config"
@@ -7,7 +7,7 @@ import (
 
 type Bookmarks struct {
 	bookmarks []Bookmark
-	lst       list
+	lst       listing
 }
 
 func (l *Bookmarks) Bookmarks() []Bookmark {

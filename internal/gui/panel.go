@@ -3,12 +3,12 @@ package gui
 import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
-	"github.com/tbuen/gocmd/internal/backend"
+	"github.com/tbuen/gocmd/internal/backend/dir"
 	"strconv"
 	"unicode/utf8"
 )
 
-func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, dir *backend.Directory) {
+func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, d *dir.Directory) {
 	const scrollbarWidth = 8.0
 
 	ch := 15.0
@@ -26,7 +26,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 	context.LineTo(sx2, 0)
 	context.Stroke()
 
-	if dir == nil {
+	if d == nil {
 		return
 	}
 
@@ -35,8 +35,8 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 	lines := int((height - ch - 27) / ch)
 	columns := int((width - 10) / cw)
 
-	state := dir.State()
-	path := restrictFront(dir.Path(), columns)
+	state := d.State()
+	path := restrictFront(d.Path(), columns)
 
 	if active {
 		setSourceColor(context, "3584E4")
@@ -47,25 +47,25 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 	context.Fill()
 
 	switch state {
-	case backend.STATE_IDLE:
+	case dir.STATE_IDLE:
 		setSourceColor(context, "FFFFFF")
-	case backend.STATE_ERROR:
+	case dir.STATE_ERROR:
 		setSourceColor(context, "FF0000")
-	case backend.STATE_RELOAD:
+	case dir.STATE_RELOAD:
 		setSourceColor(context, "FFFF00")
 	}
 	context.MoveTo(5, 3)
 	layout.SetText(path, -1)
 	pango.CairoShowLayout(context, layout)
 
-	if state == backend.STATE_IDLE {
+	if state == dir.STATE_IDLE {
 		width -= scrollbarWidth
 		columns = int((width - 10) / cw)
 
-		files := dir.Files()
+		files := d.Files()
 
-		selection := dir.Selection()
-		offset := dir.DispOffset()
+		selection := d.Selection()
+		offset := d.DispOffset()
 
 		if len(files) <= lines {
 			offset = 0
@@ -78,7 +78,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 		if selection < offset {
 			offset = selection
 		}
-		dir.SetDispOffset(offset)
+		d.SetDispOffset(offset)
 
 		minLenName := 15
 		extraLen := 0
@@ -236,10 +236,10 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 	setSourceColor(context, "B0B0B0")
 	context.Rectangle(2, height-20, width-5, ch+2)
 	context.Fill()
-	if state == backend.STATE_IDLE {
-		info := dir.Info()
+	if state == dir.STATE_IDLE {
+		info := d.Info()
 		var text string
-		if dir.Hidden() {
+		if d.Hidden() {
 			text += ". "
 		}
 		text += strconv.Itoa(info.NumDirs)

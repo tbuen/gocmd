@@ -1,4 +1,4 @@
-package backend
+package dir
 
 import (
 	"github.com/tbuen/gocmd/internal/config"
