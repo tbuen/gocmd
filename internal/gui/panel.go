@@ -147,15 +147,23 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 				context.Rectangle(2, 6+(float64(i)+1)*ch, width-5, ch)
 				context.Fill()
 			} else if i%2 == 0 {
-				setSourceColor(context, "FFFFFF")
+				if active {
+					setSourceColor(context, "FFFFFF")
+				} else {
+					setSourceColor(context, "EEEEEE")
+				}
 				context.Rectangle(2, 6+(float64(i)+1)*ch, width-5, ch)
 				context.Fill()
 			} else {
-				setSourceColor(context, "F6F5F4")
+				if active {
+					setSourceColor(context, "F6F5F4")
+				} else {
+					setSourceColor(context, "E6E5E4")
+				}
 				context.Rectangle(2, 6+(float64(i)+1)*ch, width-5, ch)
 				context.Fill()
 			}
-			if active && offset+i == selection {
+			if offset+i == selection {
 				setSourceColor(context, "000000")
 				context.Rectangle(3, 6+(float64(i)+1)*ch, width-6, ch)
 				context.Stroke()

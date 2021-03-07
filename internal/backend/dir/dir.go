@@ -3,6 +3,7 @@ package dir
 import (
 	"github.com/tbuen/gocmd/internal/backend/gui"
 	"github.com/tbuen/gocmd/internal/config"
+	. "github.com/tbuen/gocmd/internal/global"
 	"github.com/tbuen/gocmd/internal/log"
 	"os"
 	"os/exec"
@@ -57,7 +58,7 @@ func New() *Directory {
 	} else {
 		path = string(filepath.Separator)
 	}
-	return newDirectory(path, config.SORT_BY_NAME, config.SORT_ASCENDING, false)
+	return newDirectory(path, SORT_BY_NAME, SORT_ASCENDING, false)
 }
 
 func newDirectory(path string, sortKey int, sortOrder int, hidden bool) *Directory {
@@ -128,7 +129,7 @@ func (dir *Directory) Enter() {
 				dir.selection = 0
 				dir.Reload()
 			} else {
-				cmd, args := config.FileCmd(file.Ext())
+				cmd, args := config.Apps().FileCmd(file.Ext())
 				if cmd != "" {
 					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)
@@ -148,7 +149,7 @@ func (dir *Directory) View() {
 		if dir.selection < len(dir.files) {
 			file := dir.files[dir.selection]
 			if !file.Dir() {
-				cmd, args := config.View()
+				cmd, args := config.Apps().View()
 				if cmd != "" {
 					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)
@@ -168,7 +169,7 @@ func (dir *Directory) Edit() {
 		if dir.selection < len(dir.files) {
 			file := dir.files[dir.selection]
 			if !file.Dir() {
-				cmd, args := config.Edit()
+				cmd, args := config.Apps().Edit()
 				if cmd != "" {
 					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)
@@ -308,26 +309,26 @@ func (dir *Directory) ToggleMarkAll() {
 }
 
 func (dir *Directory) sort() {
-	if dir.sortKey == config.SORT_BY_NAME {
-		if dir.sortOrder == config.SORT_ASCENDING {
+	if dir.sortKey == SORT_BY_NAME {
+		if dir.sortOrder == SORT_ASCENDING {
 			orderedBy(dirFirst, nameAsc).sort(dir.files)
 		} else {
 			orderedBy(dirFirst, nameDesc).sort(dir.files)
 		}
-	} else if dir.sortKey == config.SORT_BY_EXT {
-		if dir.sortOrder == config.SORT_ASCENDING {
+	} else if dir.sortKey == SORT_BY_EXT {
+		if dir.sortOrder == SORT_ASCENDING {
 			orderedBy(dirFirst, extAsc, nameAsc).sort(dir.files)
 		} else {
 			orderedBy(dirFirst, extDesc, nameDesc).sort(dir.files)
 		}
-	} else if dir.sortKey == config.SORT_BY_SIZE {
-		if dir.sortOrder == config.SORT_ASCENDING {
+	} else if dir.sortKey == SORT_BY_SIZE {
+		if dir.sortOrder == SORT_ASCENDING {
 			orderedBy(dirFirst, sizeAsc, nameAsc).sort(dir.files)
 		} else {
 			orderedBy(dirFirst, sizeDesc, nameAsc).sort(dir.files)
 		}
-	} else if dir.sortKey == config.SORT_BY_TIME {
-		if dir.sortOrder == config.SORT_ASCENDING {
+	} else if dir.sortKey == SORT_BY_TIME {
+		if dir.sortOrder == SORT_ASCENDING {
 			orderedBy(dirFirst, timeAsc, nameAsc).sort(dir.files)
 		} else {
 			orderedBy(dirFirst, timeDesc, nameAsc).sort(dir.files)

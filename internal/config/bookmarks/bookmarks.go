@@ -13,18 +13,6 @@ type Config struct {
 	isChanged bool
 }
 
-type XMLBookmark struct {
-	Path string `xml:"path,attr"`
-	//SortKey   int    `xml:"sortkey,attr"`
-	//SortOrder int    `xml:"sortorder,attr"`
-	//Hidden    bool   `xml:"hidden,attr"`
-}
-
-type XMLBookmarks struct {
-	Name      xml.Name      `xml:"bookmarks"`
-	Bookmarks []XMLBookmark `xml:"bookmark"`
-}
-
 func (c *Config) Get() (bb []Bookmark) {
 	bb = make([]Bookmark, len(c.bookmarks))
 	copy(bb, c.bookmarks)
@@ -36,77 +24,72 @@ func (c *Config) Add(b Bookmark) {
 }
 
 func (c *Config) Load(filename string) {
-	var xmlBookmarks XMLBookmarks
-
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Println(log.CONFIG, "Could not open", filename)
-		return
+	type XmlBookmark struct {
+		Path string `xml:"path,attr"`
+		//SortKey   int    `xml:"sortkey,attr"`
+		//SortOrder int    `xml:"sortorder,attr"`
+		//Hidden    bool   `xml:"hidden,attr"`
 	}
-	defer file.Close()
-
-	fileInfo, err := file.Stat()
-	if err != nil {
-		log.Println(log.CONFIG, "Could not stat", filename)
-		return
+	type Xml struct {
+		Name      xml.Name      `xml:"bookmarks"`
+		Bookmarks []XmlBookmark `xml:"bookmark"`
 	}
-	buffer := make([]byte, fileInfo.Size())
-	_, err = file.ReadAt(buffer, 0)
+
+	buf, err := os.ReadFile(filename)
 	if err != nil {
-		log.Println(log.CONFIG, "Could not read", filename)
+		log.Println(log.GLOBAL, err)
 		return
 	}
 
-	err = xml.Unmarshal(buffer, &xmlBookmarks)
+	var cfg Xml
+	err = xml.Unmarshal(buf, &cfg)
 	if err != nil {
-		log.Println(log.CONFIG, "Could not parse", filename, err)
+		log.Println(log.GLOBAL, err)
 		return
 	}
 
-	for _, b := range xmlBookmarks.Bookmarks {
+	for _, b := range cfg.Bookmarks {
 		c.bookmarks = append(c.bookmarks, Bookmark{b.Path})
 	}
 }
 
 func (c *Config) Save(filename string) {
+	type XmlBookmark struct {
+		Path string `xml:"path,attr"`
+		//SortKey   int    `xml:"sortkey,attr"`
+		//SortOrder int    `xml:"sortorder,attr"`
+		//Hidden    bool   `xml:"hidden,attr"`
+	}
+	type Xml struct {
+		Name      xml.Name      `xml:"bookmarks"`
+		Bookmarks []XmlBookmark `xml:"bookmark"`
+	}
+
 	if !c.isChanged {
 		return
 	}
 
-	var xmlBookmarks XMLBookmarks
-
+	var cfg Xml
 	for _, b := range c.bookmarks {
-		xmlBookmarks.Bookmarks = append(xmlBookmarks.Bookmarks, XMLBookmark{b.Path})
+		cfg.Bookmarks = append(cfg.Bookmarks, XmlBookmark{b.Path})
 	}
 
-	output, err := xml.MarshalIndent(&xmlBookmarks, "", "\t")
+	buf, err := xml.MarshalIndent(&cfg, "", "\t")
 	if err != nil {
-		log.Println(log.CONFIG, "Error creating bookmarks xml", err)
+		log.Println(log.GLOBAL, err)
 		return
 	}
 
-	dir := filepath.Dir(filename)
-	err = os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
-		log.Println(log.GLOBAL, "Could not mkdir", dir)
-		return
-	}
+	buf = append([]byte(xml.Header), buf...)
 
-	file, err := os.Create(filename)
+	err = os.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
-		log.Println(log.GLOBAL, "Could not open", filename, "for writing")
+		log.Println(log.GLOBAL, err)
 		return
 	}
-	defer file.Close()
-
-	_, err = file.WriteString(xml.Header)
+	err = os.WriteFile(filename, buf, 0666)
 	if err != nil {
-		log.Println(log.GLOBAL, "Could not write", filename)
-		return
-	}
-	_, err = file.Write(output)
-	if err != nil {
-		log.Println(log.GLOBAL, "Could not write", filename)
+		log.Println(log.GLOBAL, err)
 		return
 	}
 }

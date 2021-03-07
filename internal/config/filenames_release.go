@@ -16,9 +16,6 @@ func init() {
 	if err == nil {
 		filenameApps = config + string(filepath.Separator) + "gocmd" + string(filepath.Separator) + "apps.xml"
 		filenameBookmarks = config + string(filepath.Separator) + "gocmd" + string(filepath.Separator) + "bookmarks.xml"
-	}
-	cache, err := os.UserCacheDir()
-	if err == nil {
-		filenameTabs = cache + string(filepath.Separator) + "gocmd" + string(filepath.Separator) + "tabs.xml"
+		filenameTabs = config + string(filepath.Separator) + "gocmd" + string(filepath.Separator) + "tabs.xml"
 	}
 }

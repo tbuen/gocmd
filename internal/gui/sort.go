@@ -6,7 +6,7 @@ import (
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/backend/dir"
 	"github.com/tbuen/gocmd/internal/backend/panel"
-	"github.com/tbuen/gocmd/internal/config"
+	. "github.com/tbuen/gocmd/internal/global"
 )
 
 func drawSort(context *cairo.Context, layout *pango.Layout, width, height float64, d *dir.Directory) {
@@ -19,8 +19,8 @@ func drawSort(context *cairo.Context, layout *pango.Layout, width, height float6
 	context.Clip()
 
 	text := "<b>sort:</b>   "
-	if sortKey == config.SORT_BY_NAME {
-		if sortOrder == config.SORT_ASCENDING {
+	if sortKey == SORT_BY_NAME {
+		if sortOrder == SORT_ASCENDING {
 			text += "<b>NAME\u2191</b>   "
 		} else {
 			text += "<b>NAME\u2193</b>   "
@@ -28,8 +28,8 @@ func drawSort(context *cairo.Context, layout *pango.Layout, width, height float6
 	} else {
 		text += "name    "
 	}
-	if sortKey == config.SORT_BY_EXT {
-		if sortOrder == config.SORT_ASCENDING {
+	if sortKey == SORT_BY_EXT {
+		if sortOrder == SORT_ASCENDING {
 			text += "<b>EXTENSION\u2191</b>   "
 		} else {
 			text += "<b>EXTENSION\u2193</b>   "
@@ -37,8 +37,8 @@ func drawSort(context *cairo.Context, layout *pango.Layout, width, height float6
 	} else {
 		text += "extension    "
 	}
-	if sortKey == config.SORT_BY_SIZE {
-		if sortOrder == config.SORT_ASCENDING {
+	if sortKey == SORT_BY_SIZE {
+		if sortOrder == SORT_ASCENDING {
 			text += "<b>SIZE\u2191</b>   "
 		} else {
 			text += "<b>SIZE\u2193</b>   "
@@ -46,8 +46,8 @@ func drawSort(context *cairo.Context, layout *pango.Layout, width, height float6
 	} else {
 		text += "size    "
 	}
-	if sortKey == config.SORT_BY_TIME {
-		if sortOrder == config.SORT_ASCENDING {
+	if sortKey == SORT_BY_TIME {
+		if sortOrder == SORT_ASCENDING {
 			text += "<b>MODIFICATION TIME\u2191</b>   "
 		} else {
 			text += "<b>MODIFICATION TIME\u2193</b>   "
@@ -68,27 +68,27 @@ func keySort(key uint) {
 	sortKey, sortOrder := d.SortKey()
 	switch key {
 	case gdk.KEY_h, gdk.KEY_Left:
-		if sortKey == config.SORT_BY_EXT {
-			sortKey = config.SORT_BY_NAME
-		} else if sortKey == config.SORT_BY_SIZE {
-			sortKey = config.SORT_BY_EXT
-		} else if sortKey == config.SORT_BY_TIME {
-			sortKey = config.SORT_BY_SIZE
+		if sortKey == SORT_BY_EXT {
+			sortKey = SORT_BY_NAME
+		} else if sortKey == SORT_BY_SIZE {
+			sortKey = SORT_BY_EXT
+		} else if sortKey == SORT_BY_TIME {
+			sortKey = SORT_BY_SIZE
 		}
 		d.SetSortKey(sortKey, sortOrder)
 	case gdk.KEY_l, gdk.KEY_Right:
-		if sortKey == config.SORT_BY_NAME {
-			sortKey = config.SORT_BY_EXT
-		} else if sortKey == config.SORT_BY_EXT {
-			sortKey = config.SORT_BY_SIZE
-		} else if sortKey == config.SORT_BY_SIZE {
-			sortKey = config.SORT_BY_TIME
+		if sortKey == SORT_BY_NAME {
+			sortKey = SORT_BY_EXT
+		} else if sortKey == SORT_BY_EXT {
+			sortKey = SORT_BY_SIZE
+		} else if sortKey == SORT_BY_SIZE {
+			sortKey = SORT_BY_TIME
 		}
 		d.SetSortKey(sortKey, sortOrder)
 	case gdk.KEY_j, gdk.KEY_Down:
-		d.SetSortKey(sortKey, config.SORT_DESCENDING)
+		d.SetSortKey(sortKey, SORT_DESCENDING)
 	case gdk.KEY_k, gdk.KEY_Up:
-		d.SetSortKey(sortKey, config.SORT_ASCENDING)
+		d.SetSortKey(sortKey, SORT_ASCENDING)
 	case gdk.KEY_s, gdk.KEY_q, gdk.KEY_Escape, gdk.KEY_Return:
 		mode = MODE_NORMAL
 		Refresh()
