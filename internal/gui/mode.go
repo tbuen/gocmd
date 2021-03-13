@@ -38,19 +38,19 @@ func keyNormal(win *gtk.ApplicationWindow, key uint) {
 	case gdk.KEY_Tab:
 		panel.Toggle()
 	case gdk.KEY_t:
-		panel.Active().NewTab()
+		panel.Active().New()
 	case gdk.KEY_T:
-		panel.Active().CloneTab()
+		panel.Active().Clone()
 	case gdk.KEY_w:
-		panel.Active().DeleteTab()
+		panel.Active().Delete()
 	case gdk.KEY_h, gdk.KEY_Left:
-		//backend.PrevTab(backend.PANEL_ACTIVE)
+		panel.Active().Prev()
 	case gdk.KEY_H: // TODO Shift+Left
-		//backend.FirstTab(backend.PANEL_ACTIVE)
+		panel.Active().First()
 	case gdk.KEY_l, gdk.KEY_Right:
-		//backend.NextTab(backend.PANEL_ACTIVE)
+		panel.Active().Next()
 	case gdk.KEY_L: // TODO Shift+Right
-		//backend.LastTab(backend.PANEL_ACTIVE)
+		panel.Active().Last()
 	default:
 		switch panel.Active().Tab().Mode() {
 		case tab.MODE_DIRECTORY:

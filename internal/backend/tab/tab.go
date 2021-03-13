@@ -37,7 +37,7 @@ func New() *Tab {
 
 func (t *Tab) Clone() *Tab {
 	c := new(Tab)
-	//c.dir = t.dir.Clone()
+	c.dir = t.dir.Clone()
 	// TODO clone := p.ActiveTab().Directory().Clone()
 	/*src := p.Tab().Directory()
 	sortKey, sortOrder := src.SortKey()
@@ -65,15 +65,11 @@ func (t *Tab) HideBookmarks() {
 }
 
 func (t *Tab) Directory() (d *dir.Directory) {
-	if t.mode == MODE_DIRECTORY {
-		d = t.dir
-	}
+	d = t.dir
 	return
 }
 
 func (t *Tab) Bookmarks() (b *listing.Bookmarks) {
-	if t.mode == MODE_BOOKMARKS {
-		b = &t.bl
-	}
+	b = &t.bl
 	return
 }

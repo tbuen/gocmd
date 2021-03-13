@@ -61,6 +61,10 @@ func New() *Directory {
 	return newDirectory(path, SORT_BY_NAME, SORT_ASCENDING, false)
 }
 
+func (dir *Directory) Clone() *Directory {
+	return newDirectory(dir.path, dir.sortKey, dir.sortOrder, dir.hidden)
+}
+
 func newDirectory(path string, sortKey int, sortOrder int, hidden bool) *Directory {
 	d := new(Directory)
 	d.dispOffsetHist = make(map[string]int)

@@ -11,13 +11,15 @@ import (
 )
 
 const (
-	left = iota
-	right
+	LEFT = iota
+	RIGHT
 )
 
 type Header struct {
 	Titles []string
 	Active int
+	// TODO replace by something like guiData:
+	// or save this directly in gui
 	Offset float64
 }
 
@@ -29,7 +31,7 @@ type Panel struct {
 
 var (
 	panels [2]Panel
-	active *Panel = &panels[left]
+	active *Panel = &panels[LEFT]
 )
 
 func Load() {
@@ -37,8 +39,8 @@ func Load() {
 	//config.ReadApps()
 	//tabcfg, err := config.ReadTabs()
 	//if err != nil {
-	panels[left].NewTab()
-	panels[right].NewTab()
+	panels[LEFT].New()
+	panels[RIGHT].New()
 	//insertTab(PANEL_LEFT, newDefaultDirectory())
 	//insertTab(PANEL_RIGHT, newDefaultDirectory())
 	//return
@@ -80,18 +82,18 @@ func Active() *Panel {
 }
 
 func Left() *Panel {
-	return &panels[left]
+	return &panels[LEFT]
 }
 
 func Right() *Panel {
-	return &panels[right]
+	return &panels[RIGHT]
 }
 
 func Toggle() {
-	if active == &panels[left] {
-		active = &panels[right]
+	if active == &panels[LEFT] {
+		active = &panels[RIGHT]
 	} else {
-		active = &panels[left]
+		active = &panels[LEFT]
 	}
 	gui.Refresh()
 }
@@ -101,42 +103,67 @@ func (p *Panel) IsActive() bool {
 }
 
 func (p *Panel) Header() *Header {
-	p.header.Titles = make([]string, 0, p.tabs.Len())
-	for e := p.tabs.Front(); e != nil; e = e.Next() {
-		p.header.Titles = append(p.header.Titles, filepath.Base(e.Value.(*tab.Tab).Directory().Path()))
+	p.header.Titles = make([]string, p.tabs.Len())
+	for e, i := p.tabs.Front(), 0; e != nil; e, i = e.Next(), i+1 {
+		// TODO: Directory (or its interface) should become a method Header()
+		p.header.Titles[i] = filepath.Base(e.Value.(*tab.Tab).Directory().Path())
+		if e == p.active {
+			p.header.Active = i
+		}
 	}
-	p.header.Active = 0
 	return &p.header
+}
+
+func (p *Panel) First() {
+	p.active = p.tabs.Front()
+	gui.Refresh()
+}
+
+func (p *Panel) Last() {
+	p.active = p.tabs.Back()
+	gui.Refresh()
+}
+
+func (p *Panel) Prev() {
+	if e := p.active.Prev(); e != nil {
+		p.active = e
+		gui.Refresh()
+	}
+}
+
+func (p *Panel) Next() {
+	if e := p.active.Next(); e != nil {
+		p.active = e
+		gui.Refresh()
+	}
 }
 
 func (p *Panel) Tab() *tab.Tab {
 	return p.active.Value.(*tab.Tab)
 }
 
-func (p *Panel) NewTab() {
+func (p *Panel) New() {
 	p.insert(tab.New())
 }
 
-func (p *Panel) CloneTab() {
+func (p *Panel) Clone() {
 	p.insert(p.Tab().Clone())
 }
 
-func (p *Panel) DeleteTab() {
-	/*idx := panelIdx(panel)
-	tabs := &panels[idx].tabs
-	active := &panels[idx].active
-	dir := (*tabs)[*active].dir
-	dir.Destroy()
-	log.Println(log.TAB, "deleting tab, before:", len(*tabs))
-	*tabs = append((*tabs)[:*active], (*tabs)[*active+1:]...)
-	if len(*tabs) == 0 {
-		CreateTab(panel)
+func (p *Panel) Delete() {
+	d := p.active
+	if p.active.Prev() != nil {
+		p.active = p.active.Prev()
+	} else {
+		p.active = p.active.Next()
 	}
-	if *active > 0 {
-		*active--
+	t := p.tabs.Remove(d)
+	t.(*tab.Tab).Directory().Destroy()
+	if p.tabs.Len() == 0 {
+		p.New()
+	} else {
+		gui.Refresh()
 	}
-	log.Println(log.TAB, "deleting tab, after:", len(*tabs))
-	gui.Refresh()*/
 }
 
 func (p *Panel) insert(t *tab.Tab) {
@@ -159,48 +186,4 @@ func (p *Panel) insert(t *tab.Tab) {
 /*func SetTabOffset(panel int, offset float64) {
 	idx := panelIdx(panel)
 	panels[idx].offset = offset
-}
-
-func FirstTab(panel int) {
-	idx := panelIdx(panel)
-	if panels[idx].active != 0 {
-		panels[idx].active = 0
-		gui.Refresh()
-	}
-}
-
-func PrevTab(panel int) {
-	idx := panelIdx(panel)
-	if panels[idx].active > 0 {
-		panels[idx].active--
-		gui.Refresh()
-	}
-}
-
-func NextTab(panel int) {
-	idx := panelIdx(panel)
-	num := len(panels[idx].tabs)
-	if panels[idx].active < num-1 {
-		panels[idx].active++
-		gui.Refresh()
-	}
-}
-
-func LastTab(panel int) {
-	idx := panelIdx(panel)
-	num := len(panels[idx].tabs)
-	if panels[idx].active != num-1 {
-		panels[idx].active = num - 1
-		gui.Refresh()
-	}
-}
-
-func panelIdx(panel int) (idx int) {
-	if panel == PANEL_ACTIVE {
-		idx = active
-	} else {
-		idx = panel
-	}
-	return
-}
-*/
+}*/
