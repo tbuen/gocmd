@@ -1,24 +1,25 @@
-package bookmarks
+package config
 
 import (
-	"encoding/xml"
+	//"encoding/xml"
 	. "github.com/tbuen/gocmd/internal/global"
-	"github.com/tbuen/gocmd/internal/log"
-	"os"
-	"path/filepath"
+	//"github.com/tbuen/gocmd/internal/log"
+	//"os"
+	//"path/filepath"
 )
 
-type Config struct {
+type Bookmarks struct {
 	bookmarks []Bookmark
 	isChanged bool
 }
 
-func (c *Config) Get() (bb []Bookmark) {
+func (c *Bookmarks) Get() (bb []Bookmark) {
 	bb = make([]Bookmark, len(c.bookmarks))
 	copy(bb, c.bookmarks)
 	return
 }
 
+/*
 func (c *Config) Add(b Bookmark) {
 	c.bookmarks = append(c.bookmarks, b)
 }
@@ -92,4 +93,4 @@ func (c *Config) Save(filename string) {
 		log.Println(log.GLOBAL, err)
 		return
 	}
-}
+}*/

@@ -5,7 +5,7 @@ import (
 	"github.com/tbuen/gocmd/internal/backend/dir"
 	"github.com/tbuen/gocmd/internal/backend/gui"
 	"github.com/tbuen/gocmd/internal/backend/listing"
-	//"github.com/tbuen/gocmd/internal/config"
+	"github.com/tbuen/gocmd/internal/config"
 	//. "github.com/tbuen/gocmd/internal/global"
 	//"github.com/tbuen/gocmd/internal/log"
 	//"path/filepath"
@@ -35,6 +35,12 @@ func New() *Tab {
 	return t
 }
 
+func NewWithConfig(cfg config.Directory) *Tab {
+	t := new(Tab)
+	t.dir = dir.NewWithConfig(cfg)
+	return t
+}
+
 func (t *Tab) Clone() *Tab {
 	c := new(Tab)
 	c.dir = t.dir.Clone()
@@ -44,6 +50,18 @@ func (t *Tab) Clone() *Tab {
 	clone := newDirectory(src.Path(), sortKey, sortOrder, src.Hidden())
 	p.insert(clone)*/
 	return c
+}
+
+func (t *Tab) Destroy() {
+	t.dir.Destroy()
+}
+
+func (t *Tab) Config() config.Directory {
+	return t.dir.Config()
+}
+
+func (t *Tab) Reload() {
+	t.dir.Reload()
 }
 
 func (t *Tab) Mode() int {

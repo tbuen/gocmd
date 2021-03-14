@@ -1,32 +1,29 @@
+// Package config handles the persistent configuration data.
 package config
 
-import (
-	"github.com/tbuen/gocmd/internal/config/apps"
-	"github.com/tbuen/gocmd/internal/config/bookmarks"
-	"github.com/tbuen/gocmd/internal/config/tabs"
+var (
+	bookmarks *Bookmarks
 )
 
-var cfg struct {
-	apps      apps.Config
-	bookmarks bookmarks.Config
-	tabs      tabs.Config
-}
-
+// Load reads the configuration data from disk.
 func Load() {
-	cfg.apps.Load(filenameApps)
-	cfg.bookmarks.Load(filenameBookmarks)
-	cfg.tabs.Load(filenameTabs)
+	readApps(filenameApps)
+
+	/*buf, err = load(filenameBookmarks)
+	if err == nil {
+		convertBookmarks(read, buf, &bookmarks)
+	}*/
+
+	readTabs(filenameTabs)
 }
 
+// Save writes the configuration data to disk.
 func Save() {
-	cfg.bookmarks.Save(filenameBookmarks)
-	cfg.tabs.Save(filenameTabs)
+	writeTabs(filenameTabs)
+
+	//cfg.bookmarks.Save(filenameBookmarks)
 }
 
-func Apps() *apps.Config {
-	return &cfg.apps
-}
-
-func Bookmarks() *bookmarks.Config {
-	return &cfg.bookmarks
+func Bookmarksi() *Bookmarks {
+	return bookmarks
 }

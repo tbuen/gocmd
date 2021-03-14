@@ -57,7 +57,7 @@ func newFile(path string) *file {
 	if len(f.ext) > 0 {
 		f.ext = f.ext[1:]
 	}
-	f.color = config.Apps().FileColor(f.ext)
+	f.color = config.FileColor(f.ext)
 	f.pipe = info.Mode()&os.ModeNamedPipe != 0
 	f.socket = info.Mode()&os.ModeSocket != 0
 

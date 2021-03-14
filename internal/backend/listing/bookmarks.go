@@ -11,7 +11,7 @@ type Bookmarks struct {
 }
 
 func (l *Bookmarks) Bookmarks() []Bookmark {
-	l.bookmarks = config.Bookmarks().Get()
+	l.bookmarks = config.Bookmarksi().Get()
 	l.lst.setSelRel(len(l.bookmarks), 0)
 	return l.bookmarks
 }

@@ -31,7 +31,7 @@ type DirInfo struct {
 
 type Directory struct {
 	state          int
-	path           string
+	config         config.Directory
 	ch             chan int
 	files          []File
 	sortKey        int
@@ -58,17 +58,25 @@ func New() *Directory {
 	} else {
 		path = string(filepath.Separator)
 	}
-	return newDirectory(path, SORT_BY_NAME, SORT_ASCENDING, false)
+	return newDirectory(config.Directory{path}, SORT_BY_NAME, SORT_ASCENDING, false)
+}
+
+func NewWithConfig(cfg config.Directory) *Directory {
+	return newDirectory(cfg, SORT_BY_NAME, SORT_ASCENDING, false)
 }
 
 func (dir *Directory) Clone() *Directory {
-	return newDirectory(dir.path, dir.sortKey, dir.sortOrder, dir.hidden)
+	return newDirectory(dir.config, dir.sortKey, dir.sortOrder, dir.hidden)
 }
 
-func newDirectory(path string, sortKey int, sortOrder int, hidden bool) *Directory {
+func (d *Directory) Config() config.Directory {
+	return d.config
+}
+
+func newDirectory(cfg config.Directory, sortKey int, sortOrder int, hidden bool) *Directory {
 	d := new(Directory)
 	d.dispOffsetHist = make(map[string]int)
-	d.path = path
+	d.config = cfg
 	d.sortKey = sortKey
 	d.sortOrder = sortOrder
 	d.hidden = hidden
@@ -80,7 +88,7 @@ func (dir *Directory) State() int {
 }
 
 func (dir *Directory) Path() string {
-	return dir.path
+	return dir.config.Path
 }
 
 func (dir *Directory) Files() []File {
@@ -88,7 +96,7 @@ func (dir *Directory) Files() []File {
 }
 
 func (dir *Directory) Reload() {
-	log.Println(log.DIR, "Reload:", dir.path)
+	log.Println(log.DIR, "Reload:", dir.config.Path)
 	if dir.state == STATE_INIT || dir.state == STATE_IDLE || dir.state == STATE_ERROR {
 		dir.state = STATE_RELOAD
 		if dir.ch == nil {
@@ -112,9 +120,9 @@ func (dir *Directory) Destroy() {
 
 func (dir *Directory) GoUp() {
 	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
-		if dir.path != string(filepath.Separator) {
-			dir.selectDir = filepath.Base(dir.path)
-			dir.path = filepath.Dir(dir.path)
+		if dir.config.Path != string(filepath.Separator) {
+			dir.selectDir = filepath.Base(dir.config.Path)
+			dir.config.Path = filepath.Dir(dir.config.Path)
 			dir.dispOffset = 0
 			dir.selection = 0
 			dir.Reload()
@@ -127,13 +135,13 @@ func (dir *Directory) Enter() {
 		if dir.selection < len(dir.files) {
 			file := dir.files[dir.selection]
 			if file.Dir() {
-				dir.dispOffsetHist[dir.path] = dir.dispOffset
-				dir.path = file.Path()
+				dir.dispOffsetHist[dir.config.Path] = dir.dispOffset
+				dir.config.Path = file.Path()
 				dir.dispOffset = 0
 				dir.selection = 0
 				dir.Reload()
 			} else {
-				cmd, args := config.Apps().FileCmd(file.Ext())
+				cmd, args := config.FileCmd(file.Ext())
 				if cmd != "" {
 					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)
@@ -153,7 +161,7 @@ func (dir *Directory) View() {
 		if dir.selection < len(dir.files) {
 			file := dir.files[dir.selection]
 			if !file.Dir() {
-				cmd, args := config.Apps().View()
+				cmd, args := config.View()
 				if cmd != "" {
 					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)
@@ -173,7 +181,7 @@ func (dir *Directory) Edit() {
 		if dir.selection < len(dir.files) {
 			file := dir.files[dir.selection]
 			if !file.Dir() {
-				cmd, args := config.Apps().Edit()
+				cmd, args := config.Edit()
 				if cmd != "" {
 					args = append(args, file.Path())
 					log.Println(log.DIR, "Exec command:", cmd, args)
@@ -190,8 +198,8 @@ func (dir *Directory) Edit() {
 
 func (dir *Directory) Root() {
 	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
-		if dir.path != string(filepath.Separator) {
-			dir.path = string(filepath.Separator)
+		if dir.config.Path != string(filepath.Separator) {
+			dir.config.Path = string(filepath.Separator)
 			dir.dispOffset = 0
 			dir.selection = 0
 			dir.Reload()
@@ -203,8 +211,8 @@ func (dir *Directory) Home() {
 	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
 		home, err := os.UserHomeDir()
 		if err == nil {
-			if dir.path != home {
-				dir.path = home
+			if dir.config.Path != home {
+				dir.config.Path = home
 				dir.dispOffset = 0
 				dir.selection = 0
 				dir.Reload()
@@ -343,21 +351,21 @@ func (dir *Directory) sort() {
 func reloadRoutine(dir *Directory) {
 	for cmd := <-dir.ch; cmd != 0; cmd = <-dir.ch {
 		if cmd == CMD_RELOAD {
-			log.Println(log.DIR, "go routine for path", dir.path, "received CMD_RELOAD")
+			log.Println(log.DIR, "go routine for path", dir.config.Path, "received CMD_RELOAD")
 			success := false
 			var prevSelectedFile string
 			if dir.selectDir == "" && dir.selection < len(dir.files) {
 				prevSelectedFile = dir.files[dir.selection].Name()
 			}
-			if directory, err := os.Open(dir.path); err == nil {
+			if directory, err := os.Open(dir.config.Path); err == nil {
 				if names, err := directory.Readdirnames(0); err == nil {
 					dir.files = dir.files[0:0]
 					log.Println(log.DIR, "before: len:", len(dir.files), "cap:", cap(dir.files))
 					for _, name := range names {
 						//time.Sleep(100 * time.Millisecond)
 						if dir.hidden || name[0] != '.' {
-							log.Println(log.DIR, "creating file", dir.path+string(filepath.Separator)+name)
-							if file := newFile(dir.path + string(filepath.Separator) + name); file != nil {
+							//log.Println(log.DIR, "creating file", dir.config.Path+string(filepath.Separator)+name)
+							if file := newFile(dir.config.Path + string(filepath.Separator) + name); file != nil {
 								dir.files = append(dir.files, file)
 							} else {
 								log.Println(log.DIR, "Failed!!")
@@ -376,25 +384,25 @@ func reloadRoutine(dir *Directory) {
 						dir.selection = 0
 					}
 					log.Println(log.DIR, "after: len:", len(dir.files), "cap:", cap(dir.files))
-					if offset, ok := dir.dispOffsetHist[dir.path]; ok {
+					if offset, ok := dir.dispOffsetHist[dir.config.Path]; ok {
 						dir.dispOffset = offset
-						delete(dir.dispOffsetHist, dir.path)
+						delete(dir.dispOffsetHist, dir.config.Path)
 					}
 					success = true
 				} else {
-					log.Println(log.DIR, "error reading", dir.path)
+					log.Println(log.DIR, "error reading", dir.config.Path)
 				}
 				directory.Close()
 			} else {
-				log.Println(log.DIR, "error opening", dir.path)
+				log.Println(log.DIR, "error opening", dir.config.Path)
 			}
 			m := msg{success, dir}
 			channel <- m
 		} else {
-			log.Println(log.DIR, "go routine for path", dir.path, "received unknown command")
+			log.Println(log.DIR, "go routine for path", dir.config.Path, "received unknown command")
 		}
 	}
-	log.Println(log.DIR, "go routine for path", dir.path, "exiting...")
+	log.Println(log.DIR, "go routine for path", dir.config.Path, "exiting...")
 }
 
 func Receive() {
