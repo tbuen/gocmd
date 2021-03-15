@@ -41,6 +41,7 @@ type appsXML struct {
 
 var apps appl
 
+// FileColor returns the color of a file.
 func FileColor(ext string) (col string) {
 	col = "000000"
 	if e, ok := apps.ext[strings.ToUpper(ext)]; ok {
@@ -49,6 +50,7 @@ func FileColor(ext string) (col string) {
 	return
 }
 
+// FileCmd returns the command and arguments associated with a file.
 func FileCmd(ext string) (cmd string, args []string) {
 	if e, ok := apps.ext[strings.ToUpper(ext)]; ok {
 		cmd = e.cmd
@@ -57,12 +59,16 @@ func FileCmd(ext string) (cmd string, args []string) {
 	return
 }
 
-func View() (string, []string) {
-	return apps.view.cmd, apps.view.args
+// View returns the command and arguments for viewing a file.
+func View() (cmd string, args []string) {
+	cmd, args = apps.view.cmd, apps.view.args
+	return
 }
 
-func Edit() (string, []string) {
-	return apps.edit.cmd, apps.edit.args
+// Edit returns the command and arguments for editing a file.
+func Edit() (cmd string, args []string) {
+	cmd, args = apps.edit.cmd, apps.edit.args
+	return
 }
 
 func readApps(filename string) {

@@ -1,96 +1,88 @@
 package config
 
 import (
-	//"encoding/xml"
-	. "github.com/tbuen/gocmd/internal/global"
-	//"github.com/tbuen/gocmd/internal/log"
-	//"os"
-	//"path/filepath"
+	"encoding/xml"
+	"fmt"
 )
 
-type Bookmarks struct {
+// Bookmark is a bookmark.
+type Bookmark struct {
+	Path      string
+	SortKey   int
+	SortOrder int
+	Hidden    bool
+}
+
+type bookmarks struct {
 	bookmarks []Bookmark
 	isChanged bool
 }
 
-func (c *Bookmarks) Get() (bb []Bookmark) {
-	bb = make([]Bookmark, len(c.bookmarks))
-	copy(bb, c.bookmarks)
-	return
+type bookmarkXML struct {
+	Path      string `xml:"path,attr"`
+	SortKey   int    `xml:"sortkey,attr"`
+	SortOrder int    `xml:"sortorder,attr"`
+	Hidden    bool   `xml:"hidden,attr"`
 }
 
-/*
-func (c *Config) Add(b Bookmark) {
-	c.bookmarks = append(c.bookmarks, b)
+type bookmarksXML struct {
+	Name      xml.Name      `xml:"bookmarks"`
+	Bookmarks []bookmarkXML `xml:"bookmark"`
 }
 
-func (c *Config) Load(filename string) {
-	type XmlBookmark struct {
-		Path string `xml:"path,attr"`
-		//SortKey   int    `xml:"sortkey,attr"`
-		//SortOrder int    `xml:"sortorder,attr"`
-		//Hidden    bool   `xml:"hidden,attr"`
-	}
-	type Xml struct {
-		Name      xml.Name      `xml:"bookmarks"`
-		Bookmarks []XmlBookmark `xml:"bookmark"`
-	}
+var bookm bookmarks
 
-	buf, err := os.ReadFile(filename)
+// Bookmarks returns the bookmarks.
+func Bookmarks() []Bookmark {
+	return bookm.bookmarks
+}
+
+// AddBookmark adds a bookmark.
+func AddBookmark(b Bookmark) {
+	bookm.bookmarks = append(bookm.bookmarks, b)
+}
+
+func readBookmarks(filename string) {
+	buf, err := load(filename)
 	if err != nil {
-		log.Println(log.GLOBAL, err)
+		fmt.Println(err)
 		return
 	}
 
-	var cfg Xml
-	err = xml.Unmarshal(buf, &cfg)
+	var bx bookmarksXML
+	err = xml.Unmarshal(buf, &bx)
 	if err != nil {
-		log.Println(log.GLOBAL, err)
+		fmt.Println(err)
 		return
 	}
 
-	for _, b := range cfg.Bookmarks {
-		c.bookmarks = append(c.bookmarks, Bookmark{b.Path})
+	for _, b := range bx.Bookmarks {
+		bookm.bookmarks = append(bookm.bookmarks, Bookmark{b.Path, b.SortKey, b.SortOrder, b.Hidden})
 	}
 }
 
-func (c *Config) Save(filename string) {
-	type XmlBookmark struct {
-		Path string `xml:"path,attr"`
-		//SortKey   int    `xml:"sortkey,attr"`
-		//SortOrder int    `xml:"sortorder,attr"`
-		//Hidden    bool   `xml:"hidden,attr"`
-	}
-	type Xml struct {
-		Name      xml.Name      `xml:"bookmarks"`
-		Bookmarks []XmlBookmark `xml:"bookmark"`
-	}
-
-	if !c.isChanged {
+func writeBookmarks(filename string) {
+	if !bookm.isChanged {
 		return
 	}
 
-	var cfg Xml
-	for _, b := range c.bookmarks {
-		cfg.Bookmarks = append(cfg.Bookmarks, XmlBookmark{b.Path})
+	var bx bookmarksXML
+	for _, b := range bookm.bookmarks {
+		bx.Bookmarks = append(bx.Bookmarks, bookmarkXML{b.Path, b.SortKey, b.SortOrder, b.Hidden})
 	}
 
-	buf, err := xml.MarshalIndent(&cfg, "", "\t")
+	buf, err := xml.MarshalIndent(bx, "", "\t")
 	if err != nil {
-		log.Println(log.GLOBAL, err)
+		fmt.Println(err)
 		return
 	}
-
 	buf = append([]byte(xml.Header), buf...)
 
-	err = os.MkdirAll(filepath.Dir(filename), 0777)
+	save(filename, buf)
 	if err != nil {
-		log.Println(log.GLOBAL, err)
+		fmt.Println(err)
 		return
 	}
-	err = os.WriteFile(filename, buf, 0666)
-	if err != nil {
-		log.Println(log.GLOBAL, err)
-		return
-	}
-}*/
+
+	return
+}

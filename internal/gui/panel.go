@@ -1,11 +1,12 @@
 package gui
 
 import (
+	"strconv"
+	"unicode/utf8"
+
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/pango"
 	"github.com/tbuen/gocmd/internal/backend/dir"
-	"strconv"
-	"unicode/utf8"
 )
 
 func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1, sx2 float64, active bool, d *dir.Directory) {
@@ -65,7 +66,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 		files := d.Files()
 
 		selection := d.Selection()
-		offset := d.DispOffset()
+		offset := d.Offset()
 
 		if len(files) <= lines {
 			offset = 0
@@ -78,7 +79,7 @@ func drawPanel(context *cairo.Context, layout *pango.Layout, width, height, sx1,
 		if selection < offset {
 			offset = selection
 		}
-		d.SetDispOffset(offset)
+		d.SetOffset(offset)
 
 		minLenName := 15
 		extraLen := 0

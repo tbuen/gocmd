@@ -69,17 +69,17 @@ func keyDirectory(key uint) {
 	case gdk.KEY_period:
 		dir.ToggleHidden()
 	case gdk.KEY_j, gdk.KEY_Down:
-		dir.SetSelectionRelative(1)
+		dir.SetSelectionRel(1)
 	case gdk.KEY_J, gdk.KEY_Page_Down:
-		dir.SetSelectionRelative(20)
+		dir.SetSelectionRel(20)
 	case gdk.KEY_k, gdk.KEY_Up:
-		dir.SetSelectionRelative(-1)
+		dir.SetSelectionRel(-1)
 	case gdk.KEY_K, gdk.KEY_Page_Up:
-		dir.SetSelectionRelative(-20)
+		dir.SetSelectionRel(-20)
 	case gdk.KEY_g, gdk.KEY_Home:
-		dir.SetSelectionAbsolute(0)
+		dir.SetSelection(0)
 	case gdk.KEY_G, gdk.KEY_End:
-		dir.SetSelectionAbsolute(-1)
+		dir.SetSelection(-1)
 	case gdk.KEY_m:
 		dir.ToggleMarkSelected()
 	case gdk.KEY_M:
@@ -113,17 +113,17 @@ func keyBookmark(key uint) {
 	b := panel.Active().Tab().Bookmarks()
 	switch key {
 	case gdk.KEY_j, gdk.KEY_Down:
-		b.SetSelectionRelative(1)
+		b.SetSelectionRel(1)
 	case gdk.KEY_J, gdk.KEY_Page_Down:
-		b.SetSelectionRelative(20)
+		b.SetSelectionRel(20)
 	case gdk.KEY_k, gdk.KEY_Up:
-		b.SetSelectionRelative(-1)
+		b.SetSelectionRel(-1)
 	case gdk.KEY_K, gdk.KEY_Page_Up:
-		b.SetSelectionRelative(-20)
+		b.SetSelectionRel(-20)
 	case gdk.KEY_g, gdk.KEY_Home:
-		b.SetSelectionAbsolute(0)
+		b.SetSelection(0)
 	case gdk.KEY_G, gdk.KEY_End:
-		b.SetSelectionAbsolute(-1)
+		b.SetSelection(-1)
 	case gdk.KEY_b, gdk.KEY_q, gdk.KEY_Escape:
 		panel.Active().Tab().HideBookmarks()
 	}

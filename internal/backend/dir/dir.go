@@ -1,14 +1,16 @@
 package dir
 
 import (
-	"github.com/tbuen/gocmd/internal/backend/gui"
-	"github.com/tbuen/gocmd/internal/config"
-	. "github.com/tbuen/gocmd/internal/global"
-	"github.com/tbuen/gocmd/internal/log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/tbuen/gocmd/internal/backend/gui"
+	"github.com/tbuen/gocmd/internal/backend/list"
+	"github.com/tbuen/gocmd/internal/config"
+	. "github.com/tbuen/gocmd/internal/global"
+	"github.com/tbuen/gocmd/internal/log"
 )
 
 const (
@@ -30,17 +32,15 @@ type DirInfo struct {
 }
 
 type Directory struct {
-	state          int
-	config         config.Directory
-	ch             chan int
-	files          []File
-	sortKey        int
-	sortOrder      int
-	hidden         bool
-	selection      int
-	dispOffset     int
-	dispOffsetHist map[string]int
-	selectDir      string
+	state     int
+	config    config.Directory
+	ch        chan int
+	sortKey   int
+	sortOrder int
+	hidden    bool
+	list.List
+	offsetHist map[string]int
+	selectDir  string
 }
 
 type msg struct {
@@ -74,13 +74,13 @@ func (d *Directory) Config() config.Directory {
 }
 
 func newDirectory(cfg config.Directory, sortKey int, sortOrder int, hidden bool) *Directory {
-	d := new(Directory)
-	d.dispOffsetHist = make(map[string]int)
-	d.config = cfg
-	d.sortKey = sortKey
-	d.sortOrder = sortOrder
-	d.hidden = hidden
-	return d
+	dir := new(Directory)
+	dir.offsetHist = make(map[string]int)
+	dir.config = cfg
+	dir.sortKey = sortKey
+	dir.sortOrder = sortOrder
+	dir.hidden = hidden
+	return dir
 }
 
 func (dir *Directory) State() int {
@@ -92,7 +92,17 @@ func (dir *Directory) Path() string {
 }
 
 func (dir *Directory) Files() []File {
-	return dir.files
+	ee := dir.Elements()
+	ff := make([]File, len(ee))
+	for i, e := range ee {
+		ff[i] = e.(File)
+	}
+	return ff
+}
+
+func (dir *Directory) File() (f File) {
+	f = dir.Element().(File)
+	return
 }
 
 func (dir *Directory) Reload() {
@@ -123,8 +133,8 @@ func (dir *Directory) GoUp() {
 		if dir.config.Path != string(filepath.Separator) {
 			dir.selectDir = filepath.Base(dir.config.Path)
 			dir.config.Path = filepath.Dir(dir.config.Path)
-			dir.dispOffset = 0
-			dir.selection = 0
+			dir.SetOffset(0)
+			dir.SetSelection(0)
 			dir.Reload()
 		}
 	}
@@ -132,13 +142,12 @@ func (dir *Directory) GoUp() {
 
 func (dir *Directory) Enter() {
 	if dir.state == STATE_IDLE {
-		if dir.selection < len(dir.files) {
-			file := dir.files[dir.selection]
+		if file := dir.File(); file != nil {
 			if file.Dir() {
-				dir.dispOffsetHist[dir.config.Path] = dir.dispOffset
+				dir.offsetHist[dir.config.Path] = dir.Offset()
 				dir.config.Path = file.Path()
-				dir.dispOffset = 0
-				dir.selection = 0
+				dir.SetOffset(0)
+				dir.SetSelection(0)
 				dir.Reload()
 			} else {
 				cmd, args := config.FileCmd(file.Ext())
@@ -158,8 +167,7 @@ func (dir *Directory) Enter() {
 
 func (dir *Directory) View() {
 	if dir.state == STATE_IDLE {
-		if dir.selection < len(dir.files) {
-			file := dir.files[dir.selection]
+		if file := dir.File(); file != nil {
 			if !file.Dir() {
 				cmd, args := config.View()
 				if cmd != "" {
@@ -178,8 +186,7 @@ func (dir *Directory) View() {
 
 func (dir *Directory) Edit() {
 	if dir.state == STATE_IDLE {
-		if dir.selection < len(dir.files) {
-			file := dir.files[dir.selection]
+		if file := dir.File(); file != nil {
 			if !file.Dir() {
 				cmd, args := config.Edit()
 				if cmd != "" {
@@ -200,8 +207,8 @@ func (dir *Directory) Root() {
 	if dir.state == STATE_IDLE || dir.state == STATE_ERROR {
 		if dir.config.Path != string(filepath.Separator) {
 			dir.config.Path = string(filepath.Separator)
-			dir.dispOffset = 0
-			dir.selection = 0
+			dir.SetOffset(0)
+			dir.SetSelection(0)
 			dir.Reload()
 		}
 	}
@@ -213,8 +220,8 @@ func (dir *Directory) Home() {
 		if err == nil {
 			if dir.config.Path != home {
 				dir.config.Path = home
-				dir.dispOffset = 0
-				dir.selection = 0
+				dir.SetOffset(0)
+				dir.SetSelection(0)
 				dir.Reload()
 			}
 		}
@@ -249,7 +256,7 @@ func (dir *Directory) ToggleHidden() {
 }
 
 func (dir *Directory) Info() (info DirInfo) {
-	for _, f := range dir.files {
+	for _, f := range dir.Files() {
 		if f.Dir() {
 			info.NumDirs++
 			if f.Marked() {
@@ -268,52 +275,16 @@ func (dir *Directory) Info() (info DirInfo) {
 	return
 }
 
-func (dir *Directory) Selection() int {
-	return dir.selection
-}
-
-func (dir *Directory) SetSelectionRelative(n int) {
-	if dir.state == STATE_IDLE {
-		if n > 0 {
-			dir.SetSelectionAbsolute(dir.selection + n)
-		} else {
-			n = -n
-			if n > dir.selection {
-				n = dir.selection
-			}
-			dir.SetSelectionAbsolute(dir.selection - n)
-		}
-	}
-}
-
-func (dir *Directory) SetSelectionAbsolute(n int) {
-	if dir.state == STATE_IDLE {
-		dir.selection = n
-		if dir.selection < 0 || dir.selection >= len(dir.files) {
-			dir.selection = len(dir.files) - 1
-		}
-		gui.Refresh()
-	}
-}
-
-func (dir *Directory) DispOffset() int {
-	return dir.dispOffset
-}
-
-func (dir *Directory) SetDispOffset(offset int) {
-	dir.dispOffset = offset
-}
-
 func (dir *Directory) ToggleMarkSelected() {
-	if dir.selection < len(dir.files) {
-		dir.files[dir.selection].toggleMark()
+	if file := dir.File(); file != nil {
+		file.toggleMark()
 		gui.Refresh()
 	}
 }
 
 func (dir *Directory) ToggleMarkAll() {
-	if len(dir.files) > 0 {
-		for _, f := range dir.files {
+	if files := dir.Files(); len(files) > 0 {
+		for _, f := range files {
 			f.toggleMark()
 		}
 		gui.Refresh()
@@ -323,27 +294,27 @@ func (dir *Directory) ToggleMarkAll() {
 func (dir *Directory) sort() {
 	if dir.sortKey == SORT_BY_NAME {
 		if dir.sortOrder == SORT_ASCENDING {
-			orderedBy(dirFirst, nameAsc).sort(dir.files)
+			orderedBy(dirFirst, nameAsc).sort(dir.Files())
 		} else {
-			orderedBy(dirFirst, nameDesc).sort(dir.files)
+			orderedBy(dirFirst, nameDesc).sort(dir.Files())
 		}
 	} else if dir.sortKey == SORT_BY_EXT {
 		if dir.sortOrder == SORT_ASCENDING {
-			orderedBy(dirFirst, extAsc, nameAsc).sort(dir.files)
+			orderedBy(dirFirst, extAsc, nameAsc).sort(dir.Files())
 		} else {
-			orderedBy(dirFirst, extDesc, nameDesc).sort(dir.files)
+			orderedBy(dirFirst, extDesc, nameDesc).sort(dir.Files())
 		}
 	} else if dir.sortKey == SORT_BY_SIZE {
 		if dir.sortOrder == SORT_ASCENDING {
-			orderedBy(dirFirst, sizeAsc, nameAsc).sort(dir.files)
+			orderedBy(dirFirst, sizeAsc, nameAsc).sort(dir.Files())
 		} else {
-			orderedBy(dirFirst, sizeDesc, nameAsc).sort(dir.files)
+			orderedBy(dirFirst, sizeDesc, nameAsc).sort(dir.Files())
 		}
 	} else if dir.sortKey == SORT_BY_TIME {
 		if dir.sortOrder == SORT_ASCENDING {
-			orderedBy(dirFirst, timeAsc, nameAsc).sort(dir.files)
+			orderedBy(dirFirst, timeAsc, nameAsc).sort(dir.Files())
 		} else {
-			orderedBy(dirFirst, timeDesc, nameAsc).sort(dir.files)
+			orderedBy(dirFirst, timeDesc, nameAsc).sort(dir.Files())
 		}
 	}
 }
@@ -353,40 +324,41 @@ func reloadRoutine(dir *Directory) {
 		if cmd == CMD_RELOAD {
 			log.Println(log.DIR, "go routine for path", dir.config.Path, "received CMD_RELOAD")
 			success := false
+			files := dir.Files()
 			var prevSelectedFile string
-			if dir.selectDir == "" && dir.selection < len(dir.files) {
-				prevSelectedFile = dir.files[dir.selection].Name()
+			if dir.selectDir == "" && dir.Selection() < len(files) {
+				prevSelectedFile = files[dir.Selection()].Name()
 			}
 			if directory, err := os.Open(dir.config.Path); err == nil {
 				if names, err := directory.Readdirnames(0); err == nil {
-					dir.files = dir.files[0:0]
-					log.Println(log.DIR, "before: len:", len(dir.files), "cap:", cap(dir.files))
+					files = files[0:0]
+					log.Println(log.DIR, "before: len:", len(files), "cap:", cap(files))
 					for _, name := range names {
 						//time.Sleep(100 * time.Millisecond)
 						if dir.hidden || name[0] != '.' {
 							//log.Println(log.DIR, "creating file", dir.config.Path+string(filepath.Separator)+name)
 							if file := newFile(dir.config.Path + string(filepath.Separator) + name); file != nil {
-								dir.files = append(dir.files, file)
+								files = append(files, file)
 							} else {
 								log.Println(log.DIR, "Failed!!")
 							}
 						}
 					}
 					dir.sort()
-					for i, f := range dir.files {
+					for i, f := range files {
 						if name := f.Name(); name == dir.selectDir || name == prevSelectedFile {
-							dir.selection = i
+							dir.SetSelection(i)
 							dir.selectDir = ""
 							break
 						}
 					}
 					if !dir.hidden && prevSelectedFile != "" && prevSelectedFile[0] == '.' {
-						dir.selection = 0
+						dir.SetSelection(0)
 					}
-					log.Println(log.DIR, "after: len:", len(dir.files), "cap:", cap(dir.files))
-					if offset, ok := dir.dispOffsetHist[dir.config.Path]; ok {
-						dir.dispOffset = offset
-						delete(dir.dispOffsetHist, dir.config.Path)
+					log.Println(log.DIR, "after: len:", len(files), "cap:", cap(files))
+					if offset, ok := dir.offsetHist[dir.config.Path]; ok {
+						dir.SetOffset(offset)
+						delete(dir.offsetHist, dir.config.Path)
 					}
 					success = true
 				} else {

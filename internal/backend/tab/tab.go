@@ -1,14 +1,10 @@
 package tab
 
 import (
-	//"container/list"
+	"github.com/tbuen/gocmd/internal/backend/bookmarks"
 	"github.com/tbuen/gocmd/internal/backend/dir"
 	"github.com/tbuen/gocmd/internal/backend/gui"
-	"github.com/tbuen/gocmd/internal/backend/listing"
 	"github.com/tbuen/gocmd/internal/config"
-	//. "github.com/tbuen/gocmd/internal/global"
-	//"github.com/tbuen/gocmd/internal/log"
-	//"path/filepath"
 )
 
 const (
@@ -17,17 +13,10 @@ const (
 )
 
 type Tab struct {
-	mode int
-	dir  *dir.Directory
-	bl   listing.Bookmarks
+	mode  int
+	dir   *dir.Directory
+	bookm bookmarks.Bookmarks
 }
-
-/*type Tabs struct {
-	Panel  int
-	Titles []string
-	Active int
-	Offset float64
-}*/
 
 func New() *Tab {
 	t := new(Tab)
@@ -44,11 +33,6 @@ func NewWithConfig(cfg config.Directory) *Tab {
 func (t *Tab) Clone() *Tab {
 	c := new(Tab)
 	c.dir = t.dir.Clone()
-	// TODO clone := p.ActiveTab().Directory().Clone()
-	/*src := p.Tab().Directory()
-	sortKey, sortOrder := src.SortKey()
-	clone := newDirectory(src.Path(), sortKey, sortOrder, src.Hidden())
-	p.insert(clone)*/
 	return c
 }
 
@@ -82,12 +66,10 @@ func (t *Tab) HideBookmarks() {
 	}
 }
 
-func (t *Tab) Directory() (d *dir.Directory) {
-	d = t.dir
-	return
+func (t *Tab) Directory() *dir.Directory {
+	return t.dir
 }
 
-func (t *Tab) Bookmarks() (b *listing.Bookmarks) {
-	b = &t.bl
-	return
+func (t *Tab) Bookmarks() *bookmarks.Bookmarks {
+	return &t.bookm
 }
